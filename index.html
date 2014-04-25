@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+<div class="screen">
+
+<div class="set">
+
+<div class="set_header">Sæt 3</div>
+
+<div class="set_team team_left">
+  <div class="set_score">
+    <div class="set_team_name">ASV 7</div>
+    <button class="set_score_button">
+      <div class="set_score_button_score">15</div>
+      <div class="set_score_button_label">+1</div>
+    </button>
+    <button class="set_score_decrement">
+      <div class="set_score_decrement_label">&minus;1</div>
+    </button>
+    <button class="set_score_timeout timeout_1">15-10</button>
+    <button class="set_score_timeout timeout_2">T-O</button>
+  </div>
+  <div class="set_match_score">1</div>
+
+  <div class="set_substitutions">
+    <div class="set_substitutions_title">Udskiftninger</div>
+    <div class="set_substitutions_cell">
+      <div class="set_substitutions_cell_in">1</div>
+      <div class="set_substitutions_cell_in_label">Ind</div>
+      <div class="set_substitutions_cell_out">23</div>
+      <div class="set_substitutions_cell_out_label">Ud</div>
+    </div>
+    <div class="set_substitutions_cell">
+      <button class="set_substitutions_cell_add">+</button>
+    </div>
+    <div class="set_substitutions_cell"></div>
+    <div class="set_substitutions_cell"></div>
+    <div class="set_substitutions_cell"></div>
+    <div class="set_substitutions_cell"></div>
+  </div>
+
+  <div class="set_lineup">
+    <div class="set_lineup_title">Opstilling</div>
+    <div class="set_lineup_cell">23</div>
+    <div class="set_lineup_cell">12</div>
+    <div class="set_lineup_cell">8</div>
+    <div class="set_lineup_cell">7</div>
+    <div class="set_lineup_cell">2</div>
+    <div class="set_lineup_cell">1</div>
+  </div>
+</div>
+
+<div class="set_team team_right">
+  <!-- The structure of team_right should be identical to team_left;
+  only tag text values are different. -->
+
+  <div class="set_score">
+    <div class="set_team_name">Viborg</div>
+    <button class="set_score_button">
+      <div class="set_score_button_score">10</div>
+      <div class="set_score_button_label">+1</div>
+    </button>
+    <button class="set_score_decrement">
+      <div class="set_score_decrement_label">&minus;1</div>
+    </button>
+    <button class="set_score_timeout timeout_1">T-O</button>
+    <button class="set_score_timeout timeout_2">T-O</button>
+  </div>
+  <div class="set_match_score">1</div>
+  <div class="set_substitutions">
+    <div class="set_substitutions_title">Udskiftninger</div>
+    <div class="set_substitutions_cell">
+      <div class="set_substitutions_cell_in">23</div>
+      <div class="set_substitutions_cell_in_label">Ind</div>
+      <div class="set_substitutions_cell_out">12</div>
+      <div class="set_substitutions_cell_out_label">Ud</div>
+    </div>
+    <div class="set_substitutions_cell">
+      <button class="set_substitutions_cell_add">+</button>
+    </div>
+    <div class="set_substitutions_cell"></div>
+    <div class="set_substitutions_cell"></div>
+    <div class="set_substitutions_cell"></div>
+    <div class="set_substitutions_cell"></div>
+  </div>
+  <div class="set_lineup">
+    <div class="set_lineup_title">Opstilling</div>
+    <div class="set_lineup_cell">23</div>
+    <div class="set_lineup_cell">12</div>
+    <div class="set_lineup_cell">8</div>
+    <div class="set_lineup_cell">7</div>
+    <div class="set_lineup_cell">2</div>
+    <div class="set_lineup_cell">1</div>
+  </div>
+</div>
+</div> <!-- end set (left part of screen) -->
+
+<div class="modal">
+
+  <div class="actions_header">Handlinger</div>
+
+  <div class="modal_contents">
+    <div class="actions">
+      <ul class="actions_list">
+      <li>ASV 7 scorer et point.</li>
+      <li>Viborg scorer et point.</li>
+      <li>ASV 7 kalder en timeout.</li>
+      <li>ASV 7 scorer et point.</li>
+      <li>Viborg scorer et point.</li>
+      <li>ASV 7 udskifter spiller 1 med spiller 23.</li>
+      </ul>
+
+      <button class="actions_undo">Slet sidste handling</button>
+    </div>
+
+    <div class="results">
+      <div class="results_header">Resultat</div>
+
+      <table class="results_table" cellspacing="8">
+	<col span="3" width="33%" />
+	<tr>
+	  <th class="results_topleft"></th>
+	  <th>ASV 7</th>
+	  <th>Viborg</th>
+	</tr>
+	<tr>
+	  <td class="results_set">Sæt 1</td>
+	  <td class="results_winner">25</td>
+	  <td>22</td>
+	</tr>
+	<tr>
+	  <td class="results_set">Sæt 2</td>
+	  <td>12</td>
+	  <td class="results_winner">25</td>
+	</tr>
+	<tr>
+	  <td class="results_set">Sæt 3</td>
+	  <td>15</td>
+	  <td>10</td>
+	</tr>
+	<tr class="results_totals">
+	  <td class="results_set">Bolde i alt</td>
+	  <td class="results_total">52</td>
+	  <td class="results_total">57</td>
+	</tr>
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+</body>
+</html>
