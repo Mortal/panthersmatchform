@@ -4,34 +4,36 @@
 var MatchForm = React.createClass({
   getInitialState: function () {
     return {
-      sets: [{score: [15, 10]}]
+      currentSetIndex: 0,
+      game: {
+        teams: ['ASV 7', 'Viborg']
+      },
+      sets: [
+        {
+          score: [15, 10]
+        }
+      ]
     };
   },
-  addScore: function (teamIndex, points) {
+  addScore: function (setIndex, teamIndex, points) {
     var st = this.state;
-    st.sets[0].score[teamIndex] += points;
+    st.sets[setIndex].score[teamIndex] += points;
     this.setState(st);
   },
   render: function () {
-    var teamLeftPlus = function () { this.addScore(0, 1); }.bind(this);
-    var teamLeftMinus = function () { this.addScore(0, -1); }.bind(this);
-    var teamRightPlus = function () { this.addScore(1, 1); }.bind(this);
-    var teamRightMinus = function () { this.addScore(1, -1); }.bind(this);
+    var addScore = function (teamIndex, points) {
+      this.addScore(this.state.currentSetIndex, teamIndex, points);
+    }.bind(this);
+
     return (
     <div className="screen">
 
-    <div className="set">
-
-    <div className="set_header">Sæt 3</div>
-
-    <TeamSet side="left" teamName="ASV 7" score={this.state.sets[0].score[0]}
-      onScorePlus={teamLeftPlus} onScoreMinus={teamLeftMinus}
-    />
-    <TeamSet side="right" teamName="Viborg" score={this.state.sets[0].score[1]}
-      onScorePlus={teamRightPlus} onScoreMinus={teamRightMinus}
-    />
-
-    </div>
+    <CurrentSet
+      number={this.state.currentSetIndex}
+      game={this.state.game}
+      set={this.state.sets[this.state.currentSetIndex]}
+      onAddScore={addScore}
+      />
 
     <div className="modal">
 
@@ -47,6 +49,37 @@ var MatchForm = React.createClass({
     </div>
     </div>
     );
+  }
+});
+
+var CurrentSet = React.createClass({
+  render: function () {
+    var number = this.props.number + 1;
+    var set = this.props.set;
+    var game = this.props.game;
+    var nameLeft = game.teams[0];
+    var nameRight = game.teams[1];
+
+    var teamLeftPlus = function () { this.props.onAddScore(0, 1); }.bind(this);
+    var teamLeftMinus = function () { this.props.onAddScore(0, -1); }.bind(this);
+    var teamRightPlus = function () { this.props.onAddScore(1, 1); }.bind(this);
+    var teamRightMinus = function () { this.props.onAddScore(1, -1); }.bind(this);
+
+    return (
+      <div className="set">
+
+      <div className="set_header">Sæt {number}</div>
+
+      <TeamSet side="left" teamName={nameLeft} score={set.score[0]}
+        onScorePlus={teamLeftPlus} onScoreMinus={teamLeftMinus}
+      />
+      <TeamSet side="right" teamName={nameRight} score={set.score[1]}
+        onScorePlus={teamRightPlus} onScoreMinus={teamRightMinus}
+      />
+
+      </div>
+      );
+
   }
 });
 
