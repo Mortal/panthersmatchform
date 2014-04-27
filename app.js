@@ -34,7 +34,13 @@ App.AppView = Backbone.View.extend({
   }
 });
 
-App.TeamViewModel = Backbone.Model.extend();
+App.TeamViewModel = Backbone.Model.extend({
+  defaults: function () {
+    return {
+      teamSide: 'left'
+    };
+  }
+});
 
 App.SetView = Backbone.View.extend({
   tagName: "div",
@@ -47,9 +53,11 @@ App.SetView = Backbone.View.extend({
       number: this.model.get('number')
     }));
     this.leftTeamView = new App.TeamView({
+			      model: new App.TeamViewModel({teamSide: 'left'}),
                               el: this.$('.team_left')
                         }).render();
     this.rightTeamView = new App.TeamView({
+			      model: new App.TeamViewModel({teamSide: 'right'}),
                               el: this.$('.team_right')
                         }).render();
     return this;
