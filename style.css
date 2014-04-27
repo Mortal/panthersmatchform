@@ -365,3 +365,16 @@ td.results_set {
     width: 40%;
     overflow: auto;
 }
+
+.set_score_timeout .scroller {
+    vertical-align: middle;
+    height: 1px;
+    width: 36px;
+    padding: 19px 0;
+    text-align: center;
+}
+
+.set_score_timeout .scroller_value {
+    height: 22px;
+    line-height: 22px;
+}
