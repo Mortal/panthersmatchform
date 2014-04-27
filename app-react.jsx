@@ -22,39 +22,7 @@ var MatchForm = React.createClass({
       <div className="modal_contents">
         <ActionList />
 
-        <div className="results">
-          <div className="results_header">Resultat</div>
-
-          <table className="results_table" cellSpacing="8">
-            <col span="3" width="33%" />
-            <tr>
-              <th className="results_topleft"></th>
-              <th>ASV 7</th>
-              <th>Viborg</th>
-            </tr>
-            <tr>
-              <td className="results_set">Sæt 1</td>
-              <td className="results_winner">25</td>
-              <td>22</td>
-            </tr>
-            <tr>
-              <td className="results_set">Sæt 2</td>
-              <td>12</td>
-              <td className="results_winner">25</td>
-            </tr>
-            <tr>
-              <td className="results_set">Sæt 3</td>
-              <td>15</td>
-              <td>10</td>
-            </tr>
-            <tr className="results_totals">
-              <td className="results_set">Bolde i alt</td>
-              <td className="results_total">52</td>
-              <td className="results_total">57</td>
-            </tr>
-          </table>
-
-        </div>
+        <Results />
 
       </div>
 
@@ -127,6 +95,46 @@ var ActionList = React.createClass({
           </ul>
 
           <button className="actions_undo">Slet sidste handling</button>
+        </div>
+    );
+  }
+});
+
+var Results = React.createClass({
+  render: function () {
+    return (
+        <div className="results">
+          <div className="results_header">Resultat</div>
+
+          <table className="results_table" cellSpacing="8">
+            <col span="3" width="33%" />
+            <tr>
+              <th className="results_topleft"></th>
+              <th>ASV 7</th>
+              <th>Viborg</th>
+            </tr>
+            <tr>
+              <td className="results_set">Sæt 1</td>
+              <td className="results_winner">25</td>
+              <td>22</td>
+            </tr>
+            <tr>
+              <td className="results_set">Sæt 2</td>
+              <td>12</td>
+              <td className="results_winner">25</td>
+            </tr>
+            <tr>
+              <td className="results_set">Sæt 3</td>
+              <td>15</td>
+              <td>10</td>
+            </tr>
+            <tr className="results_totals">
+              <td className="results_set">Bolde i alt</td>
+              <td className="results_total">52</td>
+              <td className="results_total">57</td>
+            </tr>
+          </table>
+
         </div>
     );
   }
