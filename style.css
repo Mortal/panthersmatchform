@@ -379,3 +379,7 @@ td.results_set {
     height: 22px;
     line-height: 22px;
 }
+
+.set_score_timeout .scroller_selected {
+    font-weight: bold;
+}
