@@ -20,18 +20,7 @@ var MatchForm = React.createClass({
       <div className="actions_header">Handlinger</div>
 
       <div className="modal_contents">
-        <div className="actions">
-          <ul className="actions_list">
-          <li>ASV 7 scorer et point.</li>
-          <li>Viborg scorer et point.</li>
-          <li>ASV 7 kalder en timeout.</li>
-          <li>ASV 7 scorer et point.</li>
-          <li>Viborg scorer et point.</li>
-          <li>ASV 7 udskifter spiller 1 med spiller 23.</li>
-          </ul>
-
-          <button className="actions_undo">Slet sidste handling</button>
-        </div>
+        <ActionList />
 
         <div className="results">
           <div className="results_header">Resultat</div>
@@ -120,6 +109,25 @@ var TeamSet = React.createClass({
         <div className="set_lineup_cell">1</div>
       </div>
     </div>
+    );
+  }
+});
+
+var ActionList = React.createClass({
+  render: function () {
+    return (
+        <div className="actions">
+          <ul className="actions_list">
+          <li>ASV 7 scorer et point.</li>
+          <li>Viborg scorer et point.</li>
+          <li>ASV 7 kalder en timeout.</li>
+          <li>ASV 7 scorer et point.</li>
+          <li>Viborg scorer et point.</li>
+          <li>ASV 7 udskifter spiller 1 med spiller 23.</li>
+          </ul>
+
+          <button className="actions_undo">Slet sidste handling</button>
+        </div>
     );
   }
 });
