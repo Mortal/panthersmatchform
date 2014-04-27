@@ -2,7 +2,21 @@
 // vim:set ft=javascript sw=2 et:
 
 var MatchForm = React.createClass({
+  getInitialState: function () {
+    return {
+      sets: [{score: [15, 10]}]
+    };
+  },
+  addScore: function (teamIndex, points) {
+    var st = this.state;
+    st.sets[0].score[teamIndex] += points;
+    this.setState(st);
+  },
   render: function () {
+    var teamLeftPlus = function () { this.addScore(0, 1); }.bind(this);
+    var teamLeftMinus = function () { this.addScore(0, -1); }.bind(this);
+    var teamRightPlus = function () { this.addScore(1, 1); }.bind(this);
+    var teamRightMinus = function () { this.addScore(1, -1); }.bind(this);
     return (
     <div className="screen">
 
@@ -10,8 +24,12 @@ var MatchForm = React.createClass({
 
     <div className="set_header">Sæt 3</div>
 
-    <TeamSet side="left" teamName="ASV 7" score="15" />
-    <TeamSet side="right" teamName="Viborg" score="10" />
+    <TeamSet side="left" teamName="ASV 7" score={this.state.sets[0].score[0]}
+      onScorePlus={teamLeftPlus} onScoreMinus={teamLeftMinus}
+    />
+    <TeamSet side="right" teamName="Viborg" score={this.state.sets[0].score[1]}
+      onScorePlus={teamRightPlus} onScoreMinus={teamRightMinus}
+    />
 
     </div>
 
@@ -38,11 +56,11 @@ var TeamSet = React.createClass({
     <div className={"set_team team_"+this.props.side}>
       <div className="set_score">
         <div className="set_team_name">{this.props.teamName}</div>
-        <button className="set_score_button">
+        <button className="set_score_button" onClick={this.props.onScorePlus}>
           <div className="set_score_button_score">{this.props.score}</div>
           <div className="set_score_button_label">+1</div>
         </button>
-        <button className="set_score_decrement">
+        <button className="set_score_decrement" onClick={this.props.onScoreMinus}>
           <div className="set_score_decrement_label">&minus;1</div>
         </button>
         <button className="set_score_timeout timeout_1">15-10</button>
