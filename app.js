@@ -1,4 +1,4 @@
-"use strict";
+"use strict"; // vim: set ft=javascript sw=2 noet:
 
 var App = function(elm) {
   this.mainElement = elm;
