@@ -15,9 +15,9 @@ var MatchForm = React.createClass({
       sets: [
         [{score: 25}, {score: 22}],
         [{score: 12}, {score: 25}],
-        [{score: 15, subs: [[1, 23]], timeouts: [[15, 10]],
+        [{score: 15, subs: [[1, 23]], timeouts: [[15, 10], null],
           lineup: [1, 8, 12, 23, 7, 2]},
-        {score: 10, subs: [[23, 12]], timeouts: [],
+        {score: 10, subs: [[23, 12]], timeouts: [null, null],
           lineup: [2, 1, 8, 12, 23, 7]}]
       ]
     };
@@ -27,9 +27,15 @@ var MatchForm = React.createClass({
     st.sets[setIndex][teamIndex].score += points;
     this.setState(st);
   },
-  changeTimeout: function (setIndex, teamIndex, timeoutIndex, s1, s2) {
+  changeTimeout: function (setIndex, teamIndex, timeoutData, timeoutIndex) {
     var st = this.state;
-    st.sets[setIndex][teamIndex].timeouts[timeoutIndex] = [s1, s2];
+    if (timeoutData) {
+      // Make a copy
+      timeoutData = [].slice.call(timeoutData);
+    } else {
+      timeoutData = null;
+    }
+    st.sets[setIndex][teamIndex].timeouts[timeoutIndex] = timeoutData;
     this.setState(st);
   },
   getMatchScore: function () {
@@ -83,12 +89,16 @@ var CurrentSet = React.createClass({
     var nameLeft = game.teams[0];
     var nameRight = game.teams[1];
 
+    var currentScore = [set[0].score, set[1].score];
+
     var teamLeftPlus = function () { this.props.onAddScore(0, 1); }.bind(this);
     var teamLeftMinus = function () { this.props.onAddScore(0, -1); }.bind(this);
     var teamLeftTimeoutChange = this.props.onTimeoutChange.bind(this, 0);
+    var teamLeftNewTimeout = this.props.onTimeoutChange.bind(this, 0, currentScore);
     var teamRightPlus = function () { this.props.onAddScore(1, 1); }.bind(this);
     var teamRightMinus = function () { this.props.onAddScore(1, -1); }.bind(this);
     var teamRightTimeoutChange = this.props.onTimeoutChange.bind(this, 1);
+    var teamRightNewTimeout = this.props.onTimeoutChange.bind(this, 1, currentScore);
 
     return (
       <div className="set">
@@ -99,11 +109,13 @@ var CurrentSet = React.createClass({
         matchScore={this.props.matchScore[0]}
         onScorePlus={teamLeftPlus} onScoreMinus={teamLeftMinus}
         onTimeoutChange={teamLeftTimeoutChange}
+        onNewTimeout={teamLeftNewTimeout}
       />
       <TeamSet side="right" teamName={nameRight} set={set[1]}
         matchScore={this.props.matchScore[1]}
         onScorePlus={teamRightPlus} onScoreMinus={teamRightMinus}
         onTimeoutChange={teamRightTimeoutChange}
+        onNewTimeout={teamRightNewTimeout}
       />
 
       </div>
@@ -120,13 +132,16 @@ var TeamSet = React.createClass({
     var timeoutButtons = [];
     for (var i = 0; i < TIMEOUTS; ++i) {
       var c = "set_score_timeout timeout_"+(i+1);
-      if (i < timeouts.length) {
+      if (timeouts[i]) {
         var onChange = function (i, s1, s2) {
-          this.props.onTimeoutChange(i, s1, s2);
+          this.props.onTimeoutChange([s1, s2], i);
         }.bind(this, i);
         timeoutButtons.push(<TimeoutButton className={c} score={timeouts[i]} onChange={onChange} />);
       } else {
-        timeoutButtons.push(<button className={c} onClick={this.props.onNewTimeout}>T-O</button>);
+        var onClick = function (i, s1, s2) {
+          this.props.onNewTimeout(i);
+        }.bind(this, i);
+        timeoutButtons.push(<button className={c} onClick={onClick}>T-O</button>);
       }
     }
     return (
