@@ -14,7 +14,10 @@ var MatchForm = React.createClass({
       sets: [
         [{score: 25}, {score: 22}],
         [{score: 12}, {score: 25}],
-        [{score: 15}, {score: 10}]
+        [{score: 15, subs: [[1, 23]],
+          lineup: [1, 8, 12, 23, 7, 2]},
+        {score: 10, subs: [[23, 12]],
+          lineup: [2, 1, 8, 12, 23, 7]}]
       ]
     };
   },
@@ -83,11 +86,11 @@ var CurrentSet = React.createClass({
 
       <div className="set_header">Sæt {number}</div>
 
-      <TeamSet side="left" teamName={nameLeft} score={set[0].score}
+      <TeamSet side="left" teamName={nameLeft} set={set[0]}
         matchScore={this.props.matchScore[0]}
         onScorePlus={teamLeftPlus} onScoreMinus={teamLeftMinus}
       />
-      <TeamSet side="right" teamName={nameRight} score={set[1].score}
+      <TeamSet side="right" teamName={nameRight} set={set[1]}
         matchScore={this.props.matchScore[1]}
         onScorePlus={teamRightPlus} onScoreMinus={teamRightMinus}
       />
@@ -100,12 +103,14 @@ var CurrentSet = React.createClass({
 
 var TeamSet = React.createClass({
   render: function () {
+    var initialLineup = this.props.set.lineup;
+    var score = this.props.set.score;
     return (
     <div className={"set_team team_"+this.props.side}>
       <div className="set_score">
         <div className="set_team_name">{this.props.teamName}</div>
         <button className="set_score_button" onClick={this.props.onScorePlus}>
-          <div className="set_score_button_score">{this.props.score}</div>
+          <div className="set_score_button_score">{score}</div>
           <div className="set_score_button_label">+1</div>
         </button>
         <button className="set_score_decrement" onClick={this.props.onScoreMinus}>
@@ -133,17 +138,30 @@ var TeamSet = React.createClass({
         <div className="set_substitutions_cell"></div>
       </div>
 
-      <div className="set_lineup">
-        <div className="set_lineup_title">Opstilling</div>
-        <div className="set_lineup_cell">23</div>
-        <div className="set_lineup_cell">12</div>
-        <div className="set_lineup_cell">8</div>
-        <div className="set_lineup_cell">7</div>
-        <div className="set_lineup_cell">2</div>
-        <div className="set_lineup_cell">1</div>
-      </div>
+      <CurrentLineup initial={initialLineup} score={score} />
     </div>
     );
+  }
+});
+
+var CurrentLineup = React.createClass({
+  render: function () {
+    var indices =
+      [0, 5, 4,
+       1, 2, 3];
+    var cells = [];
+    var score = this.props.score;
+    var players = indices.length;
+    for (var i = 0; i < players; ++i) {
+      var j = (indices[i] + score) % players;
+      cells.push(<div key={j} className="set_lineup_cell">{this.props.initial[j]}</div>);
+    }
+    return (
+      <div className="set_lineup">
+        <div className="set_lineup_title">Opstilling</div>
+        {cells}
+      </div>
+      );
   }
 });
 
