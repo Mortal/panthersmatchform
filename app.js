@@ -65,6 +65,13 @@ App.SetView = Backbone.View.extend({
 });
 
 App.TeamView = Backbone.View.extend({
+  events: {
+    'click .set_score_button': 'clickIncrementScore',
+    'click .set_score_decrement': 'clickDecrementScore',
+    'click .set_score_timeout.timeout_1': 'clickTimeout1',
+    'click .set_score_timeout.timeout_2': 'clickTimeout2',
+    'click .set_substitutions_cell_add': 'clickSubstitutionsAdd'
+  },
   initialize: function() {
     this.template = _.template($('#team_main').html());
   },
@@ -72,7 +79,12 @@ App.TeamView = Backbone.View.extend({
     this.$el.html(this.template({score: 0,
                                  name: "derp"}));
     return this;
-  }
+  },
+  clickIncrementScore: function () {},
+  clickDecrementScore: function () {},
+  clickTimeout1: function () {},
+  clickTimeout2: function () {},
+  clickSubstitutionsAdd: function () {}
 });
 
 App.ModalView = Backbone.View.extend({
