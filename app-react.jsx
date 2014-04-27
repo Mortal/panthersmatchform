@@ -153,6 +153,6 @@ var MatchForm = React.createClass({
     </div>
     );
   }
-})
+});
 
 React.renderComponent(<MatchForm />, document.body);
