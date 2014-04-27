@@ -3,6 +3,7 @@
 
 var SETS = 3;
 var SETSCORE = 25;
+var TIMEOUTS = 2;
 
 var MatchForm = React.createClass({
   getInitialState: function () {
@@ -14,9 +15,9 @@ var MatchForm = React.createClass({
       sets: [
         [{score: 25}, {score: 22}],
         [{score: 12}, {score: 25}],
-        [{score: 15, subs: [[1, 23]],
+        [{score: 15, subs: [[1, 23]], timeouts: [[15, 10]],
           lineup: [1, 8, 12, 23, 7, 2]},
-        {score: 10, subs: [[23, 12]],
+        {score: 10, subs: [[23, 12]], timeouts: [],
           lineup: [2, 1, 8, 12, 23, 7]}]
       ]
     };
@@ -24,6 +25,11 @@ var MatchForm = React.createClass({
   addScore: function (setIndex, teamIndex, points) {
     var st = this.state;
     st.sets[setIndex][teamIndex].score += points;
+    this.setState(st);
+  },
+  changeTimeout: function (setIndex, teamIndex, timeoutIndex, s1, s2) {
+    var st = this.state;
+    st.sets[setIndex][teamIndex].timeouts[timeoutIndex] = [s1, s2];
     this.setState(st);
   },
   getMatchScore: function () {
@@ -49,6 +55,7 @@ var MatchForm = React.createClass({
       set={this.state.sets[this.state.currentSetIndex]}
       matchScore={this.getMatchScore()}
       onAddScore={addScore}
+      onTimeoutChange={this.changeTimeout.bind(this, this.state.currentSetIndex)}
       />
 
     <div className="modal">
@@ -78,8 +85,10 @@ var CurrentSet = React.createClass({
 
     var teamLeftPlus = function () { this.props.onAddScore(0, 1); }.bind(this);
     var teamLeftMinus = function () { this.props.onAddScore(0, -1); }.bind(this);
+    var teamLeftTimeoutChange = this.props.onTimeoutChange.bind(this, 0);
     var teamRightPlus = function () { this.props.onAddScore(1, 1); }.bind(this);
     var teamRightMinus = function () { this.props.onAddScore(1, -1); }.bind(this);
+    var teamRightTimeoutChange = this.props.onTimeoutChange.bind(this, 1);
 
     return (
       <div className="set">
@@ -89,10 +98,12 @@ var CurrentSet = React.createClass({
       <TeamSet side="left" teamName={nameLeft} set={set[0]}
         matchScore={this.props.matchScore[0]}
         onScorePlus={teamLeftPlus} onScoreMinus={teamLeftMinus}
+        onTimeoutChange={teamLeftTimeoutChange}
       />
       <TeamSet side="right" teamName={nameRight} set={set[1]}
         matchScore={this.props.matchScore[1]}
         onScorePlus={teamRightPlus} onScoreMinus={teamRightMinus}
+        onTimeoutChange={teamRightTimeoutChange}
       />
 
       </div>
@@ -105,6 +116,19 @@ var TeamSet = React.createClass({
   render: function () {
     var initialLineup = this.props.set.lineup;
     var score = this.props.set.score;
+    var timeouts = this.props.set.timeouts;
+    var timeoutButtons = [];
+    for (var i = 0; i < TIMEOUTS; ++i) {
+      var c = "set_score_timeout timeout_"+(i+1);
+      if (i < timeouts.length) {
+        var onChange = function (i, s1, s2) {
+          this.props.onTimeoutChange(i, s1, s2);
+        }.bind(this, i);
+        timeoutButtons.push(<TimeoutButton className={c} score={timeouts[i]} onChange={onChange} />);
+      } else {
+        timeoutButtons.push(<button className={c} onClick={this.props.onNewTimeout}>T-O</button>);
+      }
+    }
     return (
     <div className={"set_team team_"+this.props.side}>
       <div className="set_score">
@@ -116,8 +140,7 @@ var TeamSet = React.createClass({
         <button className="set_score_decrement" onClick={this.props.onScoreMinus}>
           <div className="set_score_decrement_label">&minus;1</div>
         </button>
-        <button className="set_score_timeout timeout_1">15-10</button>
-        <button className="set_score_timeout timeout_2">T-O</button>
+        {timeoutButtons}
       </div>
       <div className="set_match_score">{this.props.matchScore}</div>
 
@@ -141,6 +164,101 @@ var TeamSet = React.createClass({
       <CurrentLineup initial={initialLineup} score={score} />
     </div>
     );
+  }
+});
+
+var TimeoutButton = React.createClass({
+  getInitialState: function () {
+    return {changing: false};
+  },
+  render: function () {
+    if (!this.state.changing) {
+      var score = this.props.score;
+      return <button className={this.props.className} onClick={this.startChange}>{score[0]}-{score[1]}</button>;
+    } else {
+      var score = this.state.score;
+      return (
+        <div className={this.props.className+' changing'} onClick={this.stopChange}>
+          <Scroller value={score[0]} min={0} max={25} onChange={this.setValue.bind(this, 0)} />
+          -
+          <Scroller value={score[1]} min={0} max={25} onChange={this.setValue.bind(this, 1)} />
+        </div>
+      );
+    }
+  },
+  startChange: function () {
+    var st = this.state;
+    st.changing = true;
+    st.score = [this.props.score[0], this.props.score[1]];
+    this.setState(st);
+  },
+  stopChange: function () {
+    var st = this.state;
+    this.props.onChange(st.score[0], st.score[1]);
+    st.changing = false;
+    st.score = null;
+    this.setState(st);
+  },
+  setValue: function (i, value) {
+    var st = this.state;
+    if (!st.changing) return;
+    if (st.score[i] == value) return;
+    st.score[i] = value;
+    this.setState(st);
+  }
+});
+
+var Scroller = React.createClass({
+  scrollTo: function (value) {
+    var elt = this.getDOMNode();
+    if (!elt) return false;
+    var idx = value - this.props.min;
+    var c = elt.childNodes[idx];
+    if (!c) return false;
+    elt.scrollTop = c.offsetTop + c.offsetHeight / 2 - elt.offsetHeight / 2;
+    return true;
+  },
+  componentDidMount: function () {
+    this.scrollTo(this.props.value);
+  },
+  render: function () {
+    var values = [];
+    for (var i = this.props.min; i <= this.props.max; ++i) {
+      var c = (i == this.props.value) ? 'scroller_value scroller_selected' : 'scroller_value';
+      values.push(<div className={c}>{i}</div>);
+    }
+    return <div onWheel={this.onWheel} onScroll={this.onScroll} className='scroller'>{values}</div>;
+  },
+  onWheel: function (e) {
+    var elt = this.getDOMNode();
+    var down = (e.deltaX == 0 && e.deltaY > 0);
+    var up = (e.deltaX == 0 && e.deltaY < 0);
+    if (elt && (up || down)) {
+      var value = up ? (this.props.value - 1) : (this.props.value + 1);
+      if (this.scrollTo(value)) {
+        this.props.onChange(value);
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+  },
+  onScroll: function () {
+    var elt = this.getDOMNode();
+    var selectedIndex = -1;
+    var tgt = elt.scrollTop + elt.offsetHeight / 2;
+    for (var i = this.props.min; i <= this.props.max; ++i) {
+      var c = elt.childNodes[i - this.props.min];
+      var y1 = c.offsetTop;
+      var y2 = y1 + c.offsetHeight;
+      if (y1 <= tgt && tgt <= y2) {
+        selectedIndex = i - this.props.min;
+        break;
+      }
+    }
+    if (selectedIndex != -1 && selectedIndex + this.props.min != this.props.value) {
+      console.log(selectedIndex + this.props.min);
+      this.props.onChange(selectedIndex + this.props.min);
+    }
   }
 });
 

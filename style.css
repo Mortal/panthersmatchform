@@ -358,3 +358,10 @@ body {
 td.results_set {
     text-align: left;
 }
+
+.scroller {
+    display: inline-block;
+    height: 100%;
+    width: 40%;
+    overflow: auto;
+}
