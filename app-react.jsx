@@ -194,20 +194,20 @@ var TeamSet = React.createClass({
         var onClick = function (i, s1, s2) {
           this.props.onNewTimeout(i);
         }.bind(this, i);
-        timeoutButtons.push(<button key={i} className={c} onClick={onClick}>T-O</button>);
+        timeoutButtons.push(<TouchButton key={i} className={c} onClick={onClick}>T-O</button>);
       }
     }
     return (
     <div className={"set_team team_"+this.props.side}>
       <div className="set_score">
         <div className="set_team_name">{this.props.teamName}</div>
-        <button className="set_score_button" onClick={this.props.onScorePlus}>
+        <TouchButton className="set_score_button" onClick={this.props.onScorePlus}>
           <div className="set_score_button_score">{score}</div>
           <div className="set_score_button_label">+1</div>
-        </button>
-        <button className="set_score_decrement" onClick={this.props.onScoreMinus}>
+        </TouchButton>
+        <TouchButton className="set_score_decrement" onClick={this.props.onScoreMinus}>
           <div className="set_score_decrement_label">&minus;1</div>
-        </button>
+        </TouchButton>
         {timeoutButtons}
       </div>
       <div className="set_match_score">{this.props.matchScore}</div>
@@ -227,7 +227,7 @@ var TimeoutButton = React.createClass({
   render: function () {
     if (!this.state.changing) {
       var score = this.props.score;
-      return <button className={this.props.className} onClick={this.startChange}>{score[0]}-{score[1]}</button>;
+      return <TouchButton className={this.props.className} onClick={this.startChange}>{score[0]}-{score[1]}</TouchButton>;
     } else {
       var score = this.state.score;
       return (
@@ -340,7 +340,7 @@ var Substitutions = React.createClass({
       } else if (i == subs.length) {
         cells.push(
           <div key={i} className="set_substitutions_cell">
-            <button className="set_substitutions_cell_add"
+            <TouchButton className="set_substitutions_cell_add"
               onClick={this.props.onSubstitutionsAdd}>
             +
             </button>
@@ -408,7 +408,7 @@ var ActionList = React.createClass({
           <li>ASV 7 udskifter spiller 1 med spiller 23.</li>
           </ul>
 
-          <button className="actions_undo">Slet sidste handling</button>
+          <TouchButton className="actions_undo">Slet sidste handling</TouchButton>
         </div>
     );
   }
@@ -466,4 +466,58 @@ var Results = React.createClass({
   }
 });
 
+var TouchButton = React.createClass({
+  getInitialState: function () {
+    return {touching: false};
+  },
+  render: function () {
+    var st = {'backgroundColor': this.state.touching ? 'red' : 'yellow'};
+    return this.transferPropsTo(
+      <button style={st} onClick={this.onClick}
+      onTouchStart={this.onTouchStart}
+      onTouchMove={this.onTouchMove}
+      onTouchEnd={this.onTouchEnd}
+      >
+      {this.props.children}
+      </button>
+    );
+  },
+  onClick: function (e) {
+    console.log("Who clicked me?!");
+  },
+  onTouchStart: function (e) {
+    console.log('start '+e.touches.length+' '+this.state.touching);
+    if (e.touches.length != 1) {
+      this.setState({touching: false});
+      return;
+    }
+    this.setState({touching: true, identifier: e.touches[0].identifier});
+    e.preventDefault();
+  },
+  onTouchMove: function (e) {
+    if (this.state.touching
+        && e.touches.length == 1
+        && e.touches[0].identifier == e.state.identifier)
+    {
+      e.preventDefault();
+    }
+  },
+  onTouchEnd: function (e) {
+    //console.log('end '+e.changedTouches.length+' '+this.changedTouches[0].identifier+' '+e);
+    if (this.state.touching
+        && e.changedTouches.length == 1
+        && e.changedTouches[0].identifier == this.state.identifier)
+    {
+      console.log('Fire click');
+      this.props.onClick();
+
+      // preventDefault *should* prevent the cascade
+      // into mouse events and click event.
+      e.preventDefault();
+    }
+    this.setState({touching: false});
+  }
+});
+
+React.initializeTouchEvents(true);
 React.renderComponent(<MatchForm />, document.body);
