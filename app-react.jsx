@@ -1,24 +1,36 @@
 /** @jsx React.DOM */
 // vim:set ft=javascript sw=2 et:
 
+var SETS = 3;
+var SETSCORE = 25;
+
 var MatchForm = React.createClass({
   getInitialState: function () {
     return {
-      currentSetIndex: 0,
+      currentSetIndex: 2,
       game: {
         teams: ['ASV 7', 'Viborg']
       },
       sets: [
-        {
-          score: [15, 10]
-        }
+        [{score: 25}, {score: 22}],
+        [{score: 12}, {score: 25}],
+        [{score: 15}, {score: 10}]
       ]
     };
   },
   addScore: function (setIndex, teamIndex, points) {
     var st = this.state;
-    st.sets[setIndex].score[teamIndex] += points;
+    st.sets[setIndex][teamIndex].score += points;
     this.setState(st);
+  },
+  getMatchScore: function () {
+    var setsWon = [0,0];
+    for (var i = 0; i <= this.state.currentSetIndex; ++i) {
+      var set = this.state.sets[i];
+      if (set[0].score >= SETSCORE) setsWon[0]++;
+      if (set[1].score >= SETSCORE) setsWon[1]++;
+    }
+    return setsWon;
   },
   render: function () {
     var addScore = function (teamIndex, points) {
@@ -32,17 +44,18 @@ var MatchForm = React.createClass({
       number={this.state.currentSetIndex}
       game={this.state.game}
       set={this.state.sets[this.state.currentSetIndex]}
+      matchScore={this.getMatchScore()}
       onAddScore={addScore}
       />
 
     <div className="modal">
 
-      <div className="actions_header">Handlinger</div>
+      {ActionList.renderHeader()}
 
       <div className="modal_contents">
         <ActionList />
 
-        <Results />
+        <Results game={this.state.game} sets={this.state.sets} />
 
       </div>
 
@@ -70,10 +83,12 @@ var CurrentSet = React.createClass({
 
       <div className="set_header">Sæt {number}</div>
 
-      <TeamSet side="left" teamName={nameLeft} score={set.score[0]}
+      <TeamSet side="left" teamName={nameLeft} score={set[0].score}
+        matchScore={this.props.matchScore[0]}
         onScorePlus={teamLeftPlus} onScoreMinus={teamLeftMinus}
       />
-      <TeamSet side="right" teamName={nameRight} score={set.score[1]}
+      <TeamSet side="right" teamName={nameRight} score={set[1].score}
+        matchScore={this.props.matchScore[1]}
         onScorePlus={teamRightPlus} onScoreMinus={teamRightMinus}
       />
 
@@ -99,7 +114,7 @@ var TeamSet = React.createClass({
         <button className="set_score_timeout timeout_1">15-10</button>
         <button className="set_score_timeout timeout_2">T-O</button>
       </div>
-      <div className="set_match_score">1</div>
+      <div className="set_match_score">{this.props.matchScore}</div>
 
       <div className="set_substitutions">
         <div className="set_substitutions_title">Udskiftninger</div>
@@ -150,9 +165,34 @@ var ActionList = React.createClass({
     );
   }
 });
+ActionList.renderHeader = function () {
+  return <div className="actions_header">Handlinger</div>;
+};
 
 var Results = React.createClass({
   render: function () {
+    var sets = [];
+    for (var i = 0; i < SETS; ++i) {
+      var set = this.props.sets[i] || {};
+      sets.push([(set[0].score | 0) || 0, (set[1].score | 0) || 0]);
+    }
+    var rows = [];
+    for (var i = 0; i < sets.length; ++i) {
+      var c0 = (sets[i][0] >= SETSCORE) ? 'results_winner' : '';
+      var c1 = (sets[i][1] >= SETSCORE) ? 'results_winner' : '';
+      rows.push(
+        <tr>
+          <td className="results_set">Sæt {i+1}</td>
+          <td className={c0}>{sets[i][0]}</td>
+          <td className={c1}>{sets[i][1]}</td>
+        </tr>
+      );
+    }
+    var sums = [0,0];
+    for (var i = 0; i < sets.length; ++i) {
+      sums[0] += sets[i][0];
+      sums[1] += sets[i][1];
+    }
     return (
         <div className="results">
           <div className="results_header">Resultat</div>
@@ -161,28 +201,14 @@ var Results = React.createClass({
             <col span="3" width="33%" />
             <tr>
               <th className="results_topleft"></th>
-              <th>ASV 7</th>
-              <th>Viborg</th>
+              <th>{this.props.game.teams[0]}</th>
+              <th>{this.props.game.teams[1]}</th>
             </tr>
-            <tr>
-              <td className="results_set">Sæt 1</td>
-              <td className="results_winner">25</td>
-              <td>22</td>
-            </tr>
-            <tr>
-              <td className="results_set">Sæt 2</td>
-              <td>12</td>
-              <td className="results_winner">25</td>
-            </tr>
-            <tr>
-              <td className="results_set">Sæt 3</td>
-              <td>15</td>
-              <td>10</td>
-            </tr>
+            {rows}
             <tr className="results_totals">
               <td className="results_set">Bolde i alt</td>
-              <td className="results_total">52</td>
-              <td className="results_total">57</td>
+              <td className="results_total">{sums[0]}</td>
+              <td className="results_total">{sums[1]}</td>
             </tr>
           </table>
 
