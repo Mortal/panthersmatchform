@@ -423,3 +423,31 @@ td.results_set {
 .set_score_timeout .scroller_selected {
     font-weight: bold;
 }
+
+.goal_action {
+    position: relative;
+    font-weight: normal;
+}
+
+.goal_action img {
+    height: 20px;
+    width: 20px;
+    vertical-align: middle;
+}
+
+.goal_action_left_name {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.goal_action_right_name {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.goal_action_text {
+    text-align: center;
+    font-weight: bold;
+}

@@ -56,9 +56,15 @@ AddScore.prototype.undo = function (st) {
 
 AddScore.prototype.description = function () {
   if (this.points == 1) {
-    return [<b>{this.teamName}{' scorer!'}</b>,' ',
-      this.teamNames[0],' ',this.newScore[0],' - ',this.newScore[1],' ',
-        this.teamNames[1]];
+    var balls = ['', ''];
+    balls[this.teamIndex] = <img src='ball.png' />;
+    return (
+      <div className="goal_action">
+        <div className="goal_action_left_name">{this.teamNames[0]} {balls[0]}</div>
+        <div className="goal_action_right_name">{balls[1]} {this.teamNames[1]}</div>
+        <div className="goal_action_text">{this.newScore[0]+' - '+this.newScore[1]}</div>
+      </div>
+    );
   } else if (this.points == -1) {
     return ['Fjern et point fra ',this.teamName];
   } else {
