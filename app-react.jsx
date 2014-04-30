@@ -43,6 +43,8 @@ AddScore.prototype.inverts = function (other) {
 };
 
 AddScore.prototype.undo = function (st) {
+  var newScore = st.sets[this.setIndex][this.teamIndex].score - this.points;
+  st.sets[this.setIndex][this.teamIndex].score = newScore;
 };
 
 AddScore.prototype.description = function () {
@@ -59,21 +61,28 @@ AddScore.prototype.description = function () {
   }
 };
 
-function ChangeTimeout(setIndex, teamIndex, timeoutData, timeoutIndex) {
+function ChangeTimeout(st, setIndex, teamIndex, timeoutData, timeoutIndex) {
   this.setIndex = setIndex;
   this.teamIndex = teamIndex;
-  this.timeoutData = timeoutData;
+  this.timeoutData = timeoutData ? [].slice.call(timeoutData) : null;
   this.timeoutIndex = timeoutIndex;
+  this.teamName = st.game.teams[teamIndex];
+  this.oldTimeout = null;
+  var set = st.sets[setIndex];
+  var teamTimeouts = set[teamIndex].timeouts;
+  if (teamTimeouts && teamTimeouts[timeoutIndex]) {
+    this.oldTimeout = [].slice.call(teamTimeouts[timeoutIndex]);
+  }
 }
 
 ChangeTimeout.prototype.execute = function (st) {
-  if (timeoutData) {
-    // Make a copy
-    timeoutData = [].slice.call(timeoutData);
-  } else {
-    timeoutData = null;
-  }
-  st.sets[setIndex][teamIndex].timeouts[timeoutIndex] = timeoutData;
+  st.sets[this.setIndex][this.teamIndex].timeouts[this.timeoutIndex] = (
+    this.timeoutData);
+};
+
+ChangeTimeout.prototype.undo = function (st) {
+  var set = st.sets[this.setIndex];
+  set[this.teamIndex].timeouts[this.timeoutIndex] = this.oldTimeout;
 };
 
 ChangeTimeout.prototype.inverts = function (other) {
@@ -106,12 +115,26 @@ var MatchForm = React.createClass({
 
   pushAction: function (action) {
     var st = this.state;
-    st.actions.push(action);
-    action.execute(st);
-    this.setState(st);
+    if (st.actions.length > 0
+        && action.inverts
+        && action.inverts(st.actions[st.actions.length-1]))
+    {
+      this.popAction();
+    } else {
+      st.actions.push(action);
+      action.execute(st);
+      this.setState(st);
+    }
   },
 
   popAction: function () {
+    var st = this.state;
+    if (st.actions.length > 0) {
+      var action = st.actions[st.actions.length-1];
+      st.actions.pop();
+      action.undo(st);
+      this.setState(st);
+    }
   },
 
   render: function () {
@@ -120,7 +143,7 @@ var MatchForm = React.createClass({
     }.bind(this);
 
     var changeTimeout = function (setIndex, teamIndex, timeoutData, timeoutIndex) {
-      this.pushAction(new ChangeTimeout(setIndex, teamIndex, timeoutData, timeoutIndex));
+      this.pushAction(new ChangeTimeout(this.state, setIndex, teamIndex, timeoutData, timeoutIndex));
     }.bind(this, this.state.currentSetIndex);
 
     return (
@@ -140,7 +163,7 @@ var MatchForm = React.createClass({
       {ActionList.renderHeader()}
 
       <div className="modal_contents">
-        <ActionList actions={this.state.actions} />
+        <ActionList actions={this.state.actions} onUndo={this.popAction} />
 
         <Results game={this.state.game} sets={this.state.sets} />
 
@@ -473,17 +496,19 @@ var CurrentLineup = React.createClass({
 
 var ActionList = React.createClass({
   render: function () {
-    var actions = [].slice.call(this.props.actions.map(function (act, i) {
-      return <li key={i}>{act.description()}</li>;
-    }));
+    actions = [].slice.call(this.props.actions);
     actions.reverse();
+    actions = actions.map(function (act, i) {
+      return <li key={i}>{act.description()}</li>;
+    });
     return (
         <div className="actions">
           <ul ref="contents" className="actions_list">
           {actions}
           </ul>
 
-          <TouchButton className="actions_undo">Slet sidste handling</TouchButton>
+          <TouchButton className="actions_undo" onClick={this.props.onUndo}>
+          Slet sidste handling</TouchButton>
         </div>
     );
   },
