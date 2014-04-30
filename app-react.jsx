@@ -10,17 +10,17 @@ var MAXPLAYERNUMBER = 30;
 
 
 function generateNewTeamInSet() {
-	return {
-			score: 0,
-			subs: [],
-			timeouts: [null, null],
-			lineup: [1,2,3,4,5,6]
-		};
+  return {
+    score: 0,
+    subs: [],
+    timeouts: [null, null],
+    lineup: [1,2,3,4,5,6]
+  };
 }
 function generateNewSet() {
-	return [
-		generateNewTeamInSet(), generateNewTeamInSet()
-	]
+  return [
+    generateNewTeamInSet(), generateNewTeamInSet()
+  ]
 }
 
 [{score: 15, subs: [[1, 23]], timeouts: [[15, 10], null],
@@ -42,31 +42,31 @@ window.onerror = function () {
 */
 
 function StartSet(st, set) {
-	this.lastSet = st.currentSetIndex;
-	this.nextSet = set;
-	if(set >= st.sets.length) {
-		this.nextSet = st.sets.length - 1;
-	}
+  this.lastSet = st.currentSetIndex;
+  this.nextSet = set;
+  if(set >= st.sets.length) {
+    this.nextSet = st.sets.length - 1;
+  }
 }
 
 StartSet.prototype.invert = function() {
-	return false;
+  return false;
 }
 
 StartSet.prototype.execute = function(st) {
-	st.currentSetIndex = this.nextSet;
+  st.currentSetIndex = this.nextSet;
 }
 
 StartSet.prototype.undo = function(st) {
-	st.currentSetIndex = this.lastSet;
+  st.currentSetIndex = this.lastSet;
 }
 
 StartSet.prototype.noop = function() {
-	return this.lastSet == this.nextSet;
+  return this.lastSet == this.nextSet;
 }
 
 StartSet.prototype.description = function() {
-	return "Sæt " +(this.nextSet + 1) + " er startet";
+  return "Sæt " +(this.nextSet + 1) + " er startet";
 }
 
 function AddScore(st, setIndex, teamIndex, points) {
@@ -233,11 +233,11 @@ var MatchForm = React.createClass({
   },
   
   getNextSet: function() {
-  	var st = this.state;
-	if(st.currentSetIndex >= st.sets.length) {
-		return st.sets.length -1;
-	}
-	return st.currentSetIndex + 1;
+    var st = this.state;
+    if(st.currentSetIndex >= st.sets.length) {
+      return st.sets.length -1;
+    }
+    return st.currentSetIndex + 1;
   },
 
   render: function () {
@@ -248,13 +248,13 @@ var MatchForm = React.createClass({
     var changeTimeout = function (setIndex, teamIndex, timeoutData, timeoutIndex) {
       this.pushAction(new ChangeTimeout(this.state, setIndex, teamIndex, timeoutData, timeoutIndex));
     }.bind(this, this.state.currentSetIndex);
-	
-	var nextSetButton;
-	if (this.getNextSet() != this.state.sets.length) {
-		nextSetButton = <TouchButton onClick={this.changeSet.bind(this, +1)} className="next_button">Start sæt {this.getNextSet() + 1}</TouchButton>;
-	} else {
-		nextSetButton = <TouchButton onClick={this.changeSet.bind(this, +1)} className="next_button" disabled="true">Der er ikke flere sæt</TouchButton>;
-	}
+
+    var nextSetButton;
+    if (this.getNextSet() != this.state.sets.length) {
+      nextSetButton = <TouchButton onClick={this.changeSet.bind(this, +1)} className="next_button">Start sæt {this.getNextSet() + 1}</TouchButton>;
+    } else {
+      nextSetButton = <TouchButton onClick={this.changeSet.bind(this, +1)} className="next_button" disabled="true">Der er ikke flere sæt</TouchButton>;
+    }
 
     var modal;
 
@@ -325,20 +325,20 @@ var MatchForm = React.createClass({
 
   // Event callback
   changeSet: function (delta) {
-	this.changeSetSpecific(this.state.currentSetIndex + delta);
+    this.changeSetSpecific(this.state.currentSetIndex + delta);
   },
   
   changeSetSpecific: function(set) {
-	var st = this.state;
-	//boundary check
-	if(set >= st.sets.length) {
-		set = st.sets.length -1;
-	}
-	if(set < 0) {
-		set = 0;
-	}
+    var st = this.state;
+    //boundary check
+    if(set >= st.sets.length) {
+      set = st.sets.length -1;
+    }
+    if(set < 0) {
+      set = 0;
+    }
     var action = new StartSet(st, set);
-	this.pushAction(action);
+    this.pushAction(action);
   },
 
   // Event callback
