@@ -41,7 +41,7 @@ body {
     left: 0;
 }
 
-.set_header, .actions_header, .results_header {
+.set_header, .modal_header, .results_header {
     height: 7.5%;
     background-color: black;
     color: white;
@@ -321,11 +321,11 @@ button {
     width: 100%;
 }
 
-.actions_header, .result_header {
+.modal_header, .result_header {
     font-size: 20px;
 }
 
-.actions_header, .result_header, .actions_list li, .results_set {
+.modal_header, .result_header, .actions_list li, .results_set {
     padding-left: 12px;
 }
 
@@ -450,6 +450,73 @@ td.results_set {
 .goal_action_text {
     text-align: center;
     font-weight: bold;
+}
+
+.subs_column {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 172px;
+}
+
+.subs_column h1 {
+    margin: 18px 0;
+    height: 36px;
+}
+
+.subs_column_in {
+    right: 55%;
+}
+
+.subs_column_out {
+    left: 55%;
+}
+
+.subs_player {
+    text-align: left;
+    height: 39px;
+    margin-bottom: 4px;
+    background-color: white;
+    border: 3px solid #999;
+    width: 166px;
+    text-overflow: ellipsis;
+    font-size: 20px;
+}
+
+.subs_unknown {
+    border-color: #4c9433;
+    background-color: white;
+}
+
+.subs_known {
+    background-color: #4c9433;
+    border-color: #38811E;
+    color: black;
+}
+
+.subs_column_out .subs_selected {
+    background-color: #4c9433;
+    border-color: #38811E;
+    color: white;
+}
+
+.subs_column_out .subs_selected {
+    background-color: #D72536;
+    border-color: rgba(173, 27, 41, 1);
+    color: white;
+}
+
+.subs_invalid {
+    background-color: white;
+    color: #666;
+    border-color: #ccc;
+}
+
+.subs_playernumber {
+    font-size: 26px;
+    font-weight: bold;
+    width: 1.5em;
+    display: inline-block;
 }
 
 .next_button {

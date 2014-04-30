@@ -5,6 +5,7 @@ var SETS = 3;
 var SETSCORE = 25;
 var TIMEOUTS = 2;
 var SUBSTITUTIONS = 6;
+var MAXPLAYERNUMBER = 30;
 
 
 
@@ -178,13 +179,26 @@ ChangeTimeout.prototype.description = function () {
 
 var MatchForm = React.createClass({
   getInitialState: function () {
+    function make_player_list(names_string) {
+      var names = names_string.split(' ');
+      var numbers = [1, 2, 7, 8, 12, 23, 4, 10, 15, 19];
+      var players = [];
+      for (var i = 0; i < names.length; ++i) {
+        players.push({number: numbers[i], name: names[i]});
+      }
+      return players;
+    }
+
     return {
+      showSubstitutionTeamIndex: 1,
       currentSetIndex: 0,
       game: {
         teams: [{
-          name: 'ASV 7'
+          name: 'ASV 7',
+          players: make_player_list('Mathias Christina Diana Mette Karina Christian Martin Steffen')
         }, {
-          name: 'Viborg'
+          name: 'Viborg',
+          players: make_player_list('Anja Amalie Jonas Mie Oliver Rasmus Asger Benedikte Alexandra Dennis')
         }]
       },
       sets: [
@@ -242,6 +256,54 @@ var MatchForm = React.createClass({
 		nextSetButton = <TouchButton onClick={this.changeSet.bind(this, +1)} className="next_button" disabled="true">Der er ikke flere sæt</TouchButton>;
 	}
 
+    var modal;
+
+    if (this.state.showSubstitutionTeamIndex != -1) {
+      var currentSet = this.state.sets[this.state.currentSetIndex];
+      var currentTeamSet = currentSet[this.state.showSubstitutionTeamIndex];
+      var currentLineup = currentTeamSet.lineup;
+      var players = (this.state.game.teams[this.state.showSubstitutionTeamIndex]
+                     .players);
+
+      modal = (
+        <div className="modal">
+          {SubstitutionsModal.renderHeader()}
+
+          <div className="modal_contents">
+            <SubstitutionsModal
+            currentLineup={currentLineup}
+            players={players}
+            />
+          </div>
+        </div>
+      );
+    } else {
+      modal = (
+        <div className="modal">
+
+          {ActionList.renderHeader()}
+
+          <div className="modal_contents">
+            <ActionList actions={this.state.actions} onUndo={this.popAction} />
+
+            <Results game={this.state.game} sets={this.state.sets} />
+
+          </div>
+
+          {nextSetButton}
+          <div style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
+            <TouchButton onClick={this.resetGame}>Start spillet forfra</TouchButton>
+            <TouchButton onClick={this.changeSet.bind(this, -1)}>Forrige sæt</TouchButton>
+            <TouchButton onClick={function () {location.reload();}}>Reload</TouchButton>
+            <span id="messages" />
+          </div>
+
+        </div>
+      );
+    }
+
+
+
     return (
     <div className="screen">
 
@@ -252,28 +314,11 @@ var MatchForm = React.createClass({
       matchScore={this.getMatchScore()}
       onAddScore={addScore}
       onTimeoutChange={changeTimeout}
+      onSubstitution={this.showSubstitutionModal}
       />
 
-    <div className="modal">
+      {modal}
 
-      {ActionList.renderHeader()}
-
-      <div className="modal_contents">
-        <ActionList actions={this.state.actions} onUndo={this.popAction} />
-
-        <Results game={this.state.game} sets={this.state.sets} />
-
-      </div>
-	  
-		{nextSetButton}
-      <div style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
-        <TouchButton onClick={this.resetGame}>Start spillet forfra</TouchButton>
-        <TouchButton onClick={this.changeSet.bind(this, -1)}>Forrige sæt</TouchButton>
-        <TouchButton onClick={function () {location.reload();}}>Reload</TouchButton>
-        <span id="messages" />
-      </div>
-
-    </div>
     </div>
     );
   },
@@ -307,6 +352,12 @@ var MatchForm = React.createClass({
         emptySet(), emptySet(), emptySet()
       ]
     });
+  },
+
+  showSubstitutionModal: function (teamIndex) {
+    var st = this.state;
+    st.showSubstitutionTeamIndex = teamIndex;
+    this.setState(st);
   },
 
   // Computed property
@@ -361,11 +412,13 @@ var CurrentSet = React.createClass({
       var onScoreMinus = this.props.onAddScore.bind(this, i, -1);
       var onTimeoutChange = this.props.onTimeoutChange.bind(this, i);
       var onNewTimeout = this.props.onTimeoutChange.bind(this, i, currentScore);
+      var onSubstitution = this.props.onSubstitution.bind(this, i);
       teamSets.push(
         <TeamSet key={i} side={sides[i]} teamName={name} set={set[i]}
           matchScore={this.props.matchScore[i]}
           onScorePlus={onScorePlus} onScoreMinus={onScoreMinus}
           onTimeoutChange={onTimeoutChange} onNewTimeout={onNewTimeout}
+          onSubstitution={onSubstitution}
           />
       );
     }
@@ -418,7 +471,8 @@ var TeamSet = React.createClass({
       </div>
       <div className="set_match_score">{this.props.matchScore}</div>
 
-      <Substitutions subs={this.props.set.subs} />
+      <Substitutions subs={this.props.set.subs}
+        onAdd={this.props.onSubstitution} />
 
       <CurrentLineup initial={initialLineup} score={score} />
     </div>
@@ -547,7 +601,7 @@ var Substitutions = React.createClass({
         cells.push(
           <div key={i} className="set_substitutions_cell">
             <TouchButton className="set_substitutions_cell_add"
-              onClick={this.props.onSubstitutionsAdd}>
+              onClick={this.props.onAdd}>
             +
             </TouchButton>
           </div>
@@ -601,6 +655,120 @@ var CurrentLineup = React.createClass({
   }
 });
 
+var SubstitutionsModal = React.createClass({
+  getInitialState: function () {
+    return {
+      selected1: null,
+      selected2: null
+    };
+  },
+  render: function () {
+    var currentLineup = this.props.currentLineup;
+    var players = this.props.players;
+    var currentBench = players.map(
+      function (pl) { return pl.number; }).filter(
+      function (n) { return -1 == currentLineup.indexOf(n); });
+    var updateState = function (k, v) {
+      this.state[k] = v;
+      this.setState(state);
+    };
+    var dataLink = function (k) {
+      return {
+        value: this.state[k],
+        requestChange: updateState.bind(this, k)
+      };
+    }.bind(this);
+    return (
+      <div>
+        <SubstitutionsPlayerList
+          side="in"
+          players={players}
+          highlight={currentBench}
+          selectedLink={dataLink('selected1')}
+          />
+        <SubstitutionsPlayerList
+          side="out"
+          players={players}
+          highlight={currentLineup}
+          selectedLink={dataLink('selected2')}
+          />
+      </div>
+    );
+  },
+  statics: {
+    renderHeader: function () {
+      return <div className="modal_header">Udskiftning</div>;
+    }
+  }
+});
+
+var SubstitutionsPlayerList = React.createClass({
+  render: function () {
+    var className = 'subs_column subs_column_'+this.props.side;
+    var selected = this.props.selectedLink.value;
+    var onPlayerClick = function (i) {
+      this.props.selectedLink.requestChange(i);
+    };
+
+    var numbers = this.props.players.map(
+      function (p) { return p.number; });
+
+    var playerObjects = [];
+    for (var i = 0; i < this.props.players.length; ++i) {
+      var player = this.props.players[i];
+      var cl = "subs_player subs_known";
+      if (this.props.highlight.indexOf(player.number) == -1) {
+        cl += ' subs_invalid';
+      }
+      playerObjects.push({
+        number: player.number,
+        name: player.name,
+        className: cl
+      });
+    }
+    playerObjects.push(null); // divider
+    for (var i = 1; i <= MAXPLAYERNUMBER; ++i) {
+      if (numbers.indexOf(i) != -1) continue;
+      playerObjects.push({
+        number: i,
+        name: '',
+        className: "subs_player subs_unknown"
+      });
+    }
+
+    var players = [];
+    for (var i = 0; i < playerObjects.length; ++i) {
+      var o = playerObjects[i];
+      if (o === null) {
+        players.push(<div key={-1} className="subs_divider" />);
+      } else {
+        var cl = o.className;
+        if (o.number == selected) {
+          cl += ' subs_selected';
+        }
+        players.push(
+          <TouchButton key={o.number} className={cl} onClick={onPlayerClick.bind(this, o.number)}>
+            <span className='subs_playernumber'>{o.number}.</span>
+            {' '}
+            <span className='subs_playername'>{o.name}</span>
+          </TouchButton>
+        );
+      }
+    }
+
+    var labels = {'in': 'Ind', 'out': 'Ud'};
+
+    return (
+      <div className={className}>
+        <h1>{labels[this.props.side]}</h1>
+        <div className='subs_list'>
+          {players}
+        </div>
+      </div>
+    );
+  }
+});
+
 var ActionList = React.createClass({
   render: function () {
     actions = [].slice.call(this.props.actions);
@@ -635,7 +803,7 @@ var ActionList = React.createClass({
 });
 
 ActionList.renderHeader = function () {
-  return <div className="actions_header">Handlinger</div>;
+  return <div className="modal_header">Handlinger</div>;
 };
 
 var Results = React.createClass({
