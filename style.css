@@ -451,3 +451,12 @@ td.results_set {
     text-align: center;
     font-weight: bold;
 }
+
+.next_button {
+	position: absolute;
+	top: 620px;
+	left: 5px;
+	padding: 10px;
+	font-size: 18px;
+	width: 160px;
+}

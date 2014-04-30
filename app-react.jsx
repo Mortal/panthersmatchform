@@ -189,6 +189,14 @@ var MatchForm = React.createClass({
       this.setState(st);
     }
   },
+  
+  getNextSet: function() {
+  	var st = this.state;
+	if(st.currentSetIndex >= st.sets.length) {
+		return st.sets.length -1;
+	}
+	return st.currentSetIndex + 1;
+  },
 
   render: function () {
     var addScore = function (teamIndex, points) {
@@ -198,6 +206,13 @@ var MatchForm = React.createClass({
     var changeTimeout = function (setIndex, teamIndex, timeoutData, timeoutIndex) {
       this.pushAction(new ChangeTimeout(this.state, setIndex, teamIndex, timeoutData, timeoutIndex));
     }.bind(this, this.state.currentSetIndex);
+	
+	var nextSetButton;
+	if (this.getNextSet() != this.state.sets.length) {
+		nextSetButton = <TouchButton onClick={this.changeSet.bind(this, +1)} className="next_button">Start sæt {this.getNextSet() + 1}</TouchButton>;
+	} else {
+		nextSetButton = <TouchButton onClick={this.changeSet.bind(this, +1)} className="next_button" disabled="true">Der er ikke flere sæt</TouchButton>;
+	}
 
     return (
     <div className="screen">
@@ -221,11 +236,11 @@ var MatchForm = React.createClass({
         <Results game={this.state.game} sets={this.state.sets} />
 
       </div>
-
+	  
+		{nextSetButton}
       <div style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
         <TouchButton onClick={this.resetGame}>Start spillet forfra</TouchButton>
         <TouchButton onClick={this.changeSet.bind(this, -1)}>Forrige sæt</TouchButton>
-        <TouchButton onClick={this.changeSet.bind(this, +1)}>Næste sæt</TouchButton>
         <TouchButton onClick={function () {location.reload();}}>Reload</TouchButton>
         <span id="messages" />
       </div>
