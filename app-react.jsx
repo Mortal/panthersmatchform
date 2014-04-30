@@ -24,6 +24,11 @@ function AddScore(st, setIndex, teamIndex, points) {
   this.teamIndex = teamIndex;
   this.points = points;
   if (st.sets[setIndex][teamIndex].score === 0) this.points = 0;
+  this.teamName = st.game.teams[teamIndex];
+  this.teamNames = [st.game.teams[0], st.game.teams[1]];
+  var set = st.sets[setIndex];
+  this.newScore = [set[0].score, set[1].score];
+  this.newScore[teamIndex] += this.points;
 }
 
 AddScore.prototype.execute = function (st) {
@@ -35,8 +40,17 @@ AddScore.prototype.undo = function (st) {
 };
 
 AddScore.prototype.description = function () {
-  return ['Tilføj score ', this.points, ' til team ', this.teamIndex,
-         ' i sæt ', this.setIndex];
+  if (this.points == 1) {
+    return [<b>{this.teamName}{' scorer!'}</b>,' ',
+      this.teamNames[0],' ',this.newScore[0],' - ',this.newScore[1],' ',
+        this.teamNames[1]];
+  } else if (this.points == -1) {
+    return ['Fjern et point fra ',this.teamName];
+  } else {
+    // This case is never reached
+    return ['Tilføj score ', this.points, ' til team ', this.teamIndex,
+           ' i sæt ', this.setIndex];
+  }
 };
 
 function ChangeTimeout(setIndex, teamIndex, timeoutData, timeoutIndex) {
