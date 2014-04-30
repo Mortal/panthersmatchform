@@ -6,6 +6,27 @@ var SETSCORE = 25;
 var TIMEOUTS = 2;
 var SUBSTITUTIONS = 6;
 
+
+
+function generateNewTeamInSet() {
+	return {
+			score: 0,
+			subs: [],
+			timeouts: [null, null],
+			lineup: [1,2,3,4,5,6]
+		};
+}
+function generateNewSet() {
+	return [
+		generateNewTeamInSet(), generateNewTeamInSet()
+	]
+}
+
+[{score: 15, subs: [[1, 23]], timeouts: [[15, 10], null],
+          lineup: [1, 8, 12, 23, 7, 2]},
+        {score: 10, subs: [[23, 12]], timeouts: [null, null],
+          lineup: [2, 1, 8, 12, 23, 7]}]
+
 /*
 console.log = function () {
   var e = document.getElementById('messages');
@@ -130,7 +151,7 @@ ChangeTimeout.prototype.description = function () {
 var MatchForm = React.createClass({
   getInitialState: function () {
     return {
-      currentSetIndex: 2,
+      currentSetIndex: 0,
       game: {
         teams: [{
           name: 'ASV 7'
@@ -139,12 +160,7 @@ var MatchForm = React.createClass({
         }]
       },
       sets: [
-        [{score: 25}, {score: 22}],
-        [{score: 12}, {score: 25}],
-        [{score: 15, subs: [[1, 23]], timeouts: [[15, 10], null],
-          lineup: [1, 8, 12, 23, 7, 2]},
-        {score: 10, subs: [[23, 12]], timeouts: [null, null],
-          lineup: [2, 1, 8, 12, 23, 7]}]
+        generateNewSet(),generateNewSet(), generateNewSet()
       ],
       actions: []
     };
@@ -221,8 +237,20 @@ var MatchForm = React.createClass({
 
   // Event callback
   changeSet: function (delta) {
-    var st = this.state;
-    st.currentSetIndex += delta;
+	this.changeSetSpecific(this.state.currentSetIndex + delta);
+  },
+  
+  changeSetSpecific: function(set) {
+	var st = this.state;
+	st.currentSetIndex = set
+    
+	//boundary check
+	if(st.currentSetIndex >= st.sets.length) {
+		st.currentSetIndex = st.sets.length -1;
+	}
+	if(st.currentSetIndex < 0) {
+		st.currentSetIndex = 0;
+	}
     this.setState(st);
   },
 
