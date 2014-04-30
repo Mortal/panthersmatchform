@@ -90,8 +90,16 @@ ChangeTimeout.prototype.inverts = function (other) {
 };
 
 ChangeTimeout.prototype.description = function () {
-  return ['Skift timeout ', this.timeoutIndex, ' til ', this.timeoutData,
-         ' i sæt ', this.setIndex, ' for hold ', this.teamIndex];
+  if (!this.timeoutData) {
+    return ['Slet timeout for hold ',this.teamName];
+  } else if (!this.oldTimeout) {
+    return [this.teamName,' kalder timeout ved stilling ',this.timeoutData[0],
+      ' - ',this.timeoutData[1]];
+  } else {
+    return ['Skift timeout for ', this.teamName,
+      ' fra ',this.oldTimeout[0],' - ',this.oldTimeout[1],
+      ' til ',this.timeoutData[0],' - ',this.timeoutData[1]];
+  }
 };
 
 var MatchForm = React.createClass({
