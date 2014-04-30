@@ -6,6 +6,61 @@ var SETSCORE = 25;
 var TIMEOUTS = 2;
 var SUBSTITUTIONS = 6;
 
+/*
+console.log = function () {
+  var e = document.getElementById('messages');
+  if (e) {
+    e.textContent = [].slice.call(arguments) + '';
+  }
+};
+
+window.onerror = function () {
+  console.log.apply(null, arguments);
+};
+*/
+
+function AddScore(st, setIndex, teamIndex, points) {
+  this.setIndex = setIndex;
+  this.teamIndex = teamIndex;
+  this.points = points;
+  if (st.sets[setIndex][teamIndex].score === 0) this.points = 0;
+}
+
+AddScore.prototype.execute = function (st) {
+  var newScore = st.sets[this.setIndex][this.teamIndex].score + this.points;
+  st.sets[this.setIndex][this.teamIndex].score = newScore;
+};
+
+AddScore.prototype.undo = function (st) {
+};
+
+AddScore.prototype.description = function () {
+  return ['Tilføj score ', this.points, ' til team ', this.teamIndex,
+         ' i sæt ', this.setIndex];
+};
+
+function ChangeTimeout(setIndex, teamIndex, timeoutData, timeoutIndex) {
+  this.setIndex = setIndex;
+  this.teamIndex = teamIndex;
+  this.timeoutData = timeoutData;
+  this.timeoutIndex = timeoutIndex;
+}
+
+ChangeTimeout.prototype.execute = function (st) {
+  if (timeoutData) {
+    // Make a copy
+    timeoutData = [].slice.call(timeoutData);
+  } else {
+    timeoutData = null;
+  }
+  st.sets[setIndex][teamIndex].timeouts[timeoutIndex] = timeoutData;
+};
+
+ChangeTimeout.prototype.description = function () {
+  return ['Skift timeout ', this.timeoutIndex, ' til ', this.timeoutData,
+         ' i sæt ', this.setIndex, ' for hold ', this.teamIndex];
+};
+
 var MatchForm = React.createClass({
   getInitialState: function () {
     return {
@@ -20,14 +75,29 @@ var MatchForm = React.createClass({
           lineup: [1, 8, 12, 23, 7, 2]},
         {score: 10, subs: [[23, 12]], timeouts: [null, null],
           lineup: [2, 1, 8, 12, 23, 7]}]
-      ]
+      ],
+      actions: []
     };
+  },
+
+  pushAction: function (action) {
+    var st = this.state;
+    st.actions.push(action);
+    action.execute(st);
+    this.setState(st);
+  },
+
+  popAction: function () {
   },
 
   render: function () {
     var addScore = function (teamIndex, points) {
-      this.addScore(this.state.currentSetIndex, teamIndex, points);
+      this.pushAction(new AddScore(this.state, this.state.currentSetIndex, teamIndex, points));
     }.bind(this);
+
+    var changeTimeout = function (setIndex, teamIndex, timeoutData, timeoutIndex) {
+      this.pushAction(new ChangeTimeout(setIndex, teamIndex, timeoutData, timeoutIndex));
+    }.bind(this, this.state.currentSetIndex);
 
     return (
     <div className="screen">
@@ -38,7 +108,7 @@ var MatchForm = React.createClass({
       set={this.state.sets[this.state.currentSetIndex]}
       matchScore={this.getMatchScore()}
       onAddScore={addScore}
-      onTimeoutChange={this.changeTimeout.bind(this, this.state.currentSetIndex)}
+      onTimeoutChange={changeTimeout}
       />
 
     <div className="modal">
@@ -46,16 +116,18 @@ var MatchForm = React.createClass({
       {ActionList.renderHeader()}
 
       <div className="modal_contents">
-        <ActionList />
+        <ActionList actions={this.state.actions} />
 
         <Results game={this.state.game} sets={this.state.sets} />
 
       </div>
 
       <div style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
-        <button onClick={this.resetGame}>Start spillet forfra</button>
-        <button onClick={this.changeSet.bind(this, -1)}>Forrige sæt</button>
-        <button onClick={this.changeSet.bind(this, +1)}>Næste sæt</button>
+        <TouchButton onClick={this.resetGame}>Start spillet forfra</TouchButton>
+        <TouchButton onClick={this.changeSet.bind(this, -1)}>Forrige sæt</TouchButton>
+        <TouchButton onClick={this.changeSet.bind(this, +1)}>Næste sæt</TouchButton>
+        <TouchButton onClick={function () {location.reload();}}>Reload</TouchButton>
+        <span id="messages" />
       </div>
 
     </div>
@@ -81,26 +153,6 @@ var MatchForm = React.createClass({
         emptySet(), emptySet(), emptySet()
       ]
     });
-  },
-
-  // Event callback
-  addScore: function (setIndex, teamIndex, points) {
-    var st = this.state;
-    st.sets[setIndex][teamIndex].score += points;
-    this.setState(st);
-  },
-
-  // Event callback
-  changeTimeout: function (setIndex, teamIndex, timeoutData, timeoutIndex) {
-    var st = this.state;
-    if (timeoutData) {
-      // Make a copy
-      timeoutData = [].slice.call(timeoutData);
-    } else {
-      timeoutData = null;
-    }
-    st.sets[setIndex][teamIndex].timeouts[timeoutIndex] = timeoutData;
-    this.setState(st);
   },
 
   // Computed property
@@ -397,20 +449,32 @@ var CurrentLineup = React.createClass({
 
 var ActionList = React.createClass({
   render: function () {
+    var actions = [].slice.call(this.props.actions.map(function (act, i) {
+      return <li key={i}>{act.description()}</li>;
+    }));
+    actions.reverse();
     return (
         <div className="actions">
-          <ul className="actions_list">
-          <li>ASV 7 scorer et point.</li>
-          <li>Viborg scorer et point.</li>
-          <li>ASV 7 kalder en timeout.</li>
-          <li>ASV 7 scorer et point.</li>
-          <li>Viborg scorer et point.</li>
-          <li>ASV 7 udskifter spiller 1 med spiller 23.</li>
+          <ul ref="contents" className="actions_list">
+          {actions}
           </ul>
 
           <TouchButton className="actions_undo">Slet sidste handling</TouchButton>
         </div>
     );
+  },
+  /*
+  componentWillUpdate: function () {
+    var el = this.refs.contents.getDOMNode();
+    //console.log("Before update:",el,el.scrollHeight,el.scrollTop);
+    this.scrollBottom = el.scrollHeight - el.scrollTop;
+  },
+  */
+  componentDidUpdate: function () {
+    var el = this.refs.contents.getDOMNode();
+    //console.log("After update:",el,el.scrollHeight,el.scrollTop);
+    //el.scrollTop = el.scrollHeight - this.scrollBottom;
+    el.scrollTop = 0;
   }
 });
 
@@ -467,15 +531,21 @@ var Results = React.createClass({
 });
 
 var TouchButton = React.createClass({
+  getDefaultProps: function () {
+    return {onClick: function () {}};
+  },
   getInitialState: function () {
     return {touching: false};
   },
   render: function () {
+    var className = this.state.touching ? 'button_active ' : '';
+    className += this.props.className;
     return this.transferPropsTo(
       <button onClick={this.onClick}
       onTouchStart={this.onTouchStart}
       onTouchMove={this.onTouchMove}
       onTouchEnd={this.onTouchEnd}
+      className={className}
       >
       {this.props.children}
       </button>
@@ -485,20 +555,25 @@ var TouchButton = React.createClass({
     this.props.onClick(e);
   },
   onTouchStart: function (e) {
-    console.log('start '+e.touches.length+' '+this.state.touching);
     if (e.touches.length != 1) {
       this.setState({touching: false});
       return;
     }
-    this.setState({touching: true, identifier: e.touches[0].identifier});
+    this.setState({touching: true, identifier: e.touches[0].identifier, target: this.getDOMNode()});
     e.preventDefault();
   },
   onTouchMove: function (e) {
     if (this.state.touching
         && e.touches.length == 1
-        && e.touches[0].identifier == e.state.identifier)
+        && e.touches[0].identifier == this.state.identifier)
     {
       e.preventDefault();
+      var touch = e.touches[0];
+      var tgt = document.elementFromPoint(touch.pageX, touch.pageY);
+      if (!this.state.target.contains(tgt)) {
+        //console.log("moved outside target "+this.state.target.className+" "+tgt.className);
+        this.setState({touching: false});
+      }
     }
   },
   onTouchEnd: function (e) {
@@ -507,7 +582,6 @@ var TouchButton = React.createClass({
         && e.changedTouches.length == 1
         && e.changedTouches[0].identifier == this.state.identifier)
     {
-      console.log('Fire click');
       this.props.onClick();
 
       // preventDefault *should* prevent the cascade
@@ -520,3 +594,9 @@ var TouchButton = React.createClass({
 
 React.initializeTouchEvents(true);
 React.renderComponent(<MatchForm />, document.body);
+
+window.addEventListener('touchstart', function (e) {
+  if (e.touches.length > 1) {
+    e.preventDefault();
+  }
+}, false);
