@@ -39,9 +39,14 @@ AddScore.prototype.execute = function (st) {
 };
 
 AddScore.prototype.inverts = function (other) {
-  return (this.setIndex == other.setIndex
+  return (other instanceof AddScore
+          && this.setIndex == other.setIndex
           && this.teamIndex == other.teamIndex
           && this.points == -other.points);
+};
+
+AddScore.prototype.noop = function () {
+  return this.points == 0;
 };
 
 AddScore.prototype.undo = function (st) {
@@ -87,8 +92,20 @@ ChangeTimeout.prototype.undo = function (st) {
   set[this.teamIndex].timeouts[this.timeoutIndex] = this.oldTimeout;
 };
 
+function timeoutEquals(t1, t2) {
+  if (t1 === t2) return true;
+  if (!t1 || !t2) return false;
+  return (t1[0] == t2[0] && t1[1] == t2[1]);
+}
+
 ChangeTimeout.prototype.inverts = function (other) {
-  return false;
+  return (other instanceof ChangeTimeout
+          && timeoutEquals(this.oldTimeout, other.timeoutData)
+          && timeoutEquals(this.timeoutData, other.oldTimeout))
+};
+
+ChangeTimeout.prototype.noop = function () {
+  return timeoutEquals(this.timeoutData, this.oldTimeout);
 };
 
 ChangeTimeout.prototype.description = function () {
@@ -130,7 +147,7 @@ var MatchForm = React.createClass({
         && action.inverts(st.actions[st.actions.length-1]))
     {
       this.popAction();
-    } else {
+    } else if (!action.noop()) {
       st.actions.push(action);
       action.execute(st);
       this.setState(st);
