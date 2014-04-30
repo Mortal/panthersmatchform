@@ -36,6 +36,12 @@ AddScore.prototype.execute = function (st) {
   st.sets[this.setIndex][this.teamIndex].score = newScore;
 };
 
+AddScore.prototype.inverts = function (other) {
+  return (this.setIndex == other.setIndex
+          && this.teamIndex == other.teamIndex
+          && this.points == -other.points);
+};
+
 AddScore.prototype.undo = function (st) {
 };
 
@@ -68,6 +74,10 @@ ChangeTimeout.prototype.execute = function (st) {
     timeoutData = null;
   }
   st.sets[setIndex][teamIndex].timeouts[timeoutIndex] = timeoutData;
+};
+
+ChangeTimeout.prototype.inverts = function (other) {
+  return false;
 };
 
 ChangeTimeout.prototype.description = function () {
