@@ -164,6 +164,10 @@ button {
     border: 0 none black;
 }
 
+.set_score_decrement.button_active, .actions_undo.button_active{
+	background-color: rgba(168, 14, 28, 1);
+}
+
 .set_score_decrement_label {
     top: 0;
     left: 0;
