@@ -286,7 +286,7 @@ var MatchForm = React.createClass({
           <div className="modal_contents">
             <ActionList actions={this.state.actions} onUndo={this.popAction} />
 
-            <Results game={this.state.game} sets={this.state.sets} />
+            <Results game={this.state.game} sets={this.state.sets} currentSet={this.state.currentSetIndex}/>
 
           </div>
 
@@ -818,7 +818,7 @@ var Results = React.createClass({
       var c0 = (sets[i][0] >= SETSCORE) ? 'results_winner' : '';
       var c1 = (sets[i][1] >= SETSCORE) ? 'results_winner' : '';
       rows.push(
-        <tr key={i}>
+        <tr key={i} className={this.props.currentSet == i ? "active_set" : ""}>
           <td className="results_set">Sæt {i+1}</td>
           <td className={c0}>{sets[i][0]}</td>
           <td className={c1}>{sets[i][1]}</td>

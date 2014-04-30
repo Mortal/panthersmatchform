@@ -378,6 +378,13 @@ button {
     margin-top: 24px;
 }
 
+.results_table .active_set td {
+  background-color: rgba(114, 197, 112, 1);
+}
+.results_table .active_set .results_set {
+  font-weight: bold;
+
+}
 .results_table td, .results_table th {
     background-color: #d3d3d3;
     text-align: center;
