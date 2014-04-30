@@ -84,8 +84,8 @@ body {
 .team_left .set_score { left: 4px; }
 .team_right .set_score { right: 4px; }
 button {
-	-webkit-transition: all 0.5s; /* For Safari 3.1 to 6.0 */
-	transition: all 0.5s;
+	-webkit-transition: all 0.1s; /* For Safari 3.1 to 6.0 */
+	transition: all 0.1s;
 }
 .set_score_button {
     position: absolute;
@@ -104,20 +104,22 @@ button {
 }
 
 /* BUTTON TRANSITIONS */
-.set_score_button_score {
-	-webkit-transition: all 0.5s; /* For Safari 3.1 to 6.0 */
-	transition: all 0.5s;
+.set_score_button_score, .set_score_decrement_label {
+	-webkit-transition: all 0.1s; /* For Safari 3.1 to 6.0 */
+	transition: all 0.1s;
 }
 
-.set_score_button.button_active .set_score_button_score {
-	top: 10px;
+.button_active .set_score_button_score , .button_active .set_score_decrement_label{
+	top: 7px;
+	left: 7px;
 }
 
 .button_active {
     -moz-box-shadow:    inset 3px 3px 6px #000000;
     -webkit-box-shadow: inset 3px 3px 6px #000000;
     box-shadow:         inset 3px 3px 6px #000000;
-	padding-left: 10px;
+	padding-left: 7px;
+	padding-top: 7px;
 }
 
 .set_score_button_score {
@@ -125,6 +127,7 @@ button {
     position: absolute;
     height: 118px;
     top: 0;
+	left: 0;
     width: 100%;
     text-align: center;
     font-weight: bold;
