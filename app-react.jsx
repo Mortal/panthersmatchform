@@ -190,7 +190,7 @@ var MatchForm = React.createClass({
     }
 
     return {
-      showSubstitutionTeamIndex: 1,
+      showSubstitutionTeamIndex: -1,
       currentSetIndex: 0,
       game: {
         teams: [{
