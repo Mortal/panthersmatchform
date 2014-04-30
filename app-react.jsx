@@ -26,8 +26,8 @@ function AddScore(st, setIndex, teamIndex, points) {
   if (st.sets[setIndex][teamIndex].score + this.points < 0) {
     this.points = -st.sets[setIndex][teamIndex].score;
   }
-  this.teamName = st.game.teams[teamIndex];
-  this.teamNames = [st.game.teams[0], st.game.teams[1]];
+  this.teamName = st.game.teams[teamIndex].name;
+  this.teamNames = [st.game.teams[0].name, st.game.teams[1].name];
   var set = st.sets[setIndex];
   this.newScore = [set[0].score, set[1].score];
   this.newScore[teamIndex] += this.points;
@@ -79,7 +79,7 @@ function ChangeTimeout(st, setIndex, teamIndex, timeoutData, timeoutIndex) {
   this.teamIndex = teamIndex;
   this.timeoutData = timeoutData ? [].slice.call(timeoutData) : null;
   this.timeoutIndex = timeoutIndex;
-  this.teamName = st.game.teams[teamIndex];
+  this.teamName = st.game.teams[teamIndex].name;
   this.oldTimeout = null;
   var set = st.sets[setIndex];
   var teamTimeouts = set[teamIndex].timeouts;
@@ -132,7 +132,11 @@ var MatchForm = React.createClass({
     return {
       currentSetIndex: 2,
       game: {
-        teams: ['ASV 7', 'Viborg']
+        teams: [{
+          name: 'ASV 7'
+        }, {
+          name: 'Viborg'
+        }]
       },
       sets: [
         [{score: 25}, {score: 22}],
@@ -228,7 +232,7 @@ var MatchForm = React.createClass({
     function emptySet() { return [emptyTeamSet(), emptyTeamSet()]; }
     this.setState({
       currentSetIndex: 0,
-      game: {teams: ['ASV 7', 'Viborg']},
+      game: {teams: [{name: 'ASV 7'}, {name: 'Viborg'}]},
       sets: [
         emptySet(), emptySet(), emptySet()
       ]
@@ -282,7 +286,7 @@ var CurrentSet = React.createClass({
     var teamSets = [];
     var sides = ['left', 'right'];
     for (var i = 0; i < 2; ++i) {
-      var name = game.teams[i];
+      var name = game.teams[i].name;
       var onScorePlus = this.props.onAddScore.bind(this, i, 1);
       var onScoreMinus = this.props.onAddScore.bind(this, i, -1);
       var onTimeoutChange = this.props.onTimeoutChange.bind(this, i);
@@ -596,8 +600,8 @@ var Results = React.createClass({
             <col span="3" width="33%" />
             <tr>
               <th className="results_topleft"></th>
-              <th>{this.props.game.teams[0]}</th>
-              <th>{this.props.game.teams[1]}</th>
+              <th>{this.props.game.teams[0].name}</th>
+              <th>{this.props.game.teams[1].name}</th>
             </tr>
             {rows}
             <tr className="results_totals">
