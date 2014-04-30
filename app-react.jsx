@@ -471,9 +471,8 @@ var TouchButton = React.createClass({
     return {touching: false};
   },
   render: function () {
-    var st = {'backgroundColor': this.state.touching ? 'red' : 'yellow'};
     return this.transferPropsTo(
-      <button style={st} onClick={this.onClick}
+      <button onClick={this.onClick}
       onTouchStart={this.onTouchStart}
       onTouchMove={this.onTouchMove}
       onTouchEnd={this.onTouchEnd}
