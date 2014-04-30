@@ -23,7 +23,9 @@ function AddScore(st, setIndex, teamIndex, points) {
   this.setIndex = setIndex;
   this.teamIndex = teamIndex;
   this.points = points;
-  if (st.sets[setIndex][teamIndex].score === 0) this.points = 0;
+  if (st.sets[setIndex][teamIndex].score + this.points < 0) {
+    this.points = -st.sets[setIndex][teamIndex].score;
+  }
   this.teamName = st.game.teams[teamIndex];
   this.teamNames = [st.game.teams[0], st.game.teams[1]];
   var set = st.sets[setIndex];
