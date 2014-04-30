@@ -482,7 +482,7 @@ var TouchButton = React.createClass({
     );
   },
   onClick: function (e) {
-    console.log("Who clicked me?!");
+    this.props.onClick(e);
   },
   onTouchStart: function (e) {
     console.log('start '+e.touches.length+' '+this.state.touching);
