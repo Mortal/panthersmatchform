@@ -194,7 +194,7 @@ var TeamSet = React.createClass({
         var onClick = function (i, s1, s2) {
           this.props.onNewTimeout(i);
         }.bind(this, i);
-        timeoutButtons.push(<TouchButton key={i} className={c} onClick={onClick}>T-O</button>);
+        timeoutButtons.push(<TouchButton key={i} className={c} onClick={onClick}>T-O</TouchButton>);
       }
     }
     return (
@@ -343,7 +343,7 @@ var Substitutions = React.createClass({
             <TouchButton className="set_substitutions_cell_add"
               onClick={this.props.onSubstitutionsAdd}>
             +
-            </button>
+            </TouchButton>
           </div>
         );
       } else {
