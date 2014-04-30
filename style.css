@@ -110,16 +110,16 @@ button {
 }
 
 .button_active .set_score_button_score , .button_active .set_score_decrement_label{
-	top: 7px;
-	left: 7px;
+	top: 5px;
+	left: 5px;
 }
 
 .button_active {
     -moz-box-shadow:    inset 3px 3px 6px #000000;
     -webkit-box-shadow: inset 3px 3px 6px #000000;
     box-shadow:         inset 3px 3px 6px #000000;
-	padding-left: 7px;
-	padding-top: 7px;
+	padding-left: 5px;
+	padding-top: 5px;
 }
 
 .set_score_button_score {
