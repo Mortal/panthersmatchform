@@ -177,6 +177,51 @@ ChangeTimeout.prototype.description = function () {
   }
 };
 
+function SubstitutionCommand(st, setIndex, teamIndex, playerIn, playerOut) {
+  this.setIndex = setIndex;
+  this.teamIndex = teamIndex;
+  this.teamName = st.game.teams[teamIndex].name;
+  this.playerIn = playerIn;
+  this.playerOut = playerOut;
+}
+
+SubstitutionCommand.prototype.execute = function (st) {
+  var currentSet = st.sets[this.setIndex];
+  var currentTeamSet = currentSet[this.teamIndex];
+  var lineup = currentTeamSet.lineup;
+  console.log(lineup, this.playerOut);
+  for (var i = 0; i < lineup.length; ++i) {
+    if (lineup[i] == this.playerOut) {
+      lineup[i] = this.playerIn;
+    }
+  }
+  currentTeamSet.subs.push([this.playerIn, this.playerOut]);
+};
+
+SubstitutionCommand.prototype.undo = function (st) {
+  var currentSet = st.sets[this.setIndex];
+  var currentTeamSet = currentSet[this.teamIndex];
+  var lineup = currentTeamSet.lineup;
+  for (var i = 0; i < lineup.length; ++i) {
+    if (lineup[i] == this.playerIn) {
+      lineup[i] = this.playerOut;
+    }
+  }
+  currentTeamSet.subs.pop();
+};
+
+SubstitutionCommand.prototype.inverts = function (other) {
+  return false;
+};
+
+SubstitutionCommand.prototype.noop = function () {
+  return false;
+};
+
+SubstitutionCommand.prototype.description = function () {
+  return <div>{this.teamName} udskifter {this.playerOut} med {this.playerIn}</div>;
+};
+
 var MatchForm = React.createClass({
   getInitialState: function () {
     function make_player_list(names_string) {
@@ -265,6 +310,25 @@ var MatchForm = React.createClass({
       var players = (this.state.game.teams[this.state.showSubstitutionTeamIndex]
                      .players);
 
+      var onSubmit = function (playerInNumber, playerOutNumber) {
+        var teamIndex = this.state.showSubstitutionTeamIndex;
+
+        var st = this.state;
+        st.showSubstitutionTeamIndex = -1;
+        this.setState(st);
+
+        this.pushAction(new SubstitutionCommand(
+          this.state, this.state.currentSetIndex, teamIndex,
+          playerInNumber, playerOutNumber));
+
+      }.bind(this);
+
+      var onCancel = function () {
+        var st = this.state;
+        st.showSubstitutionTeamIndex = -1;
+        this.setState(st);
+      }.bind(this);
+
       modal = (
         <div className="modal">
           {SubstitutionsModal.renderHeader()}
@@ -273,6 +337,8 @@ var MatchForm = React.createClass({
             <SubstitutionsModal
             currentLineup={currentLineup}
             players={players}
+            onSubmit={onSubmit}
+            onCancel={onCancel}
             />
           </div>
         </div>
@@ -665,19 +731,46 @@ var SubstitutionsModal = React.createClass({
   render: function () {
     var currentLineup = this.props.currentLineup;
     var players = this.props.players;
+
     var currentBench = players.map(
       function (pl) { return pl.number; }).filter(
       function (n) { return -1 == currentLineup.indexOf(n); });
+
     var updateState = function (k, v) {
       this.state[k] = v;
-      this.setState(state);
-    };
+      this.setState(this.state);
+    }.bind(this);
+
     var dataLink = function (k) {
       return {
         value: this.state[k],
         requestChange: updateState.bind(this, k)
       };
     }.bind(this);
+
+    var confirmSubstitution = function () {
+      this.props.onSubmit(this.state.selected1, this.state.selected2);
+    }.bind(this);
+
+    var cancelSubstitution = function () {
+      this.props.onCancel();
+    }.bind(this);
+
+    var msg = 'Vælg hvilke spillere, der skiftes ud';
+    var confirmButton = [];
+
+    if (this.state.selected1 !== null && this.state.selected2 !== null) {
+      msg = ('Spiller nr. '+this.state.selected1+' kommer ind, og ' +
+             'spiller nr. '+this.state.selected2+' går ud.');
+      confirmButton = (
+        <TouchButton
+          className='subs_confirm_button'
+          onClick={confirmSubstitution}>
+          Bekræft udskiftning
+        </TouchButton>
+      );
+    }
+
     return (
       <div>
         <SubstitutionsPlayerList
@@ -692,6 +785,15 @@ var SubstitutionsModal = React.createClass({
           highlight={currentLineup}
           selectedLink={dataLink('selected2')}
           />
+        <div className='subs_confirm'>
+          <div className='subs_confirm_message'>{msg}</div>
+          {confirmButton}
+          <TouchButton
+            className='subs_cancel_button'
+            onClick={cancelSubstitution}>
+            Fortryd
+          </TouchButton>
+        </div>
       </div>
     );
   },
@@ -744,6 +846,7 @@ var SubstitutionsPlayerList = React.createClass({
       } else {
         var cl = o.className;
         if (o.number == selected) {
+          console.log("Found selected");
           cl += ' subs_selected';
         }
         players.push(

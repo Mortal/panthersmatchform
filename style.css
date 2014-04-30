@@ -479,6 +479,11 @@ td.results_set {
     left: 55%;
 }
 
+.subs_list {
+    overflow: auto;
+    height: 440px; /* 638 px available */
+}
+
 .subs_player {
     text-align: left;
     height: 39px;
@@ -491,17 +496,17 @@ td.results_set {
 }
 
 .subs_unknown {
-    border-color: #4c9433;
+    border-color: #47a;
     background-color: white;
 }
 
 .subs_known {
-    background-color: #4c9433;
-    border-color: #38811E;
+    background-color: #69c;
+    border-color: #47a;
     color: black;
 }
 
-.subs_column_out .subs_selected {
+.subs_column_in .subs_selected {
     background-color: #4c9433;
     border-color: #38811E;
     color: white;
