@@ -4,6 +4,7 @@
 var SETS = 3;
 var SETSCORE = 25;
 var TIMEOUTS = 2;
+var SUBSTITUTIONS = 6;
 
 var MatchForm = React.createClass({
   getInitialState: function () {
@@ -22,31 +23,7 @@ var MatchForm = React.createClass({
       ]
     };
   },
-  addScore: function (setIndex, teamIndex, points) {
-    var st = this.state;
-    st.sets[setIndex][teamIndex].score += points;
-    this.setState(st);
-  },
-  changeTimeout: function (setIndex, teamIndex, timeoutData, timeoutIndex) {
-    var st = this.state;
-    if (timeoutData) {
-      // Make a copy
-      timeoutData = [].slice.call(timeoutData);
-    } else {
-      timeoutData = null;
-    }
-    st.sets[setIndex][teamIndex].timeouts[timeoutIndex] = timeoutData;
-    this.setState(st);
-  },
-  getMatchScore: function () {
-    var setsWon = [0,0];
-    for (var i = 0; i <= this.state.currentSetIndex; ++i) {
-      var set = this.state.sets[i];
-      if (set[0].score >= SETSCORE) setsWon[0]++;
-      if (set[1].score >= SETSCORE) setsWon[1]++;
-    }
-    return setsWon;
-  },
+
   render: function () {
     var addScore = function (teamIndex, points) {
       this.addScore(this.state.currentSetIndex, teamIndex, points);
@@ -75,48 +52,124 @@ var MatchForm = React.createClass({
 
       </div>
 
+      <div style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
+        <button onClick={this.resetGame}>Start spillet forfra</button>
+        <button onClick={this.changeSet.bind(this, -1)}>Forrige sæt</button>
+        <button onClick={this.changeSet.bind(this, +1)}>Næste sæt</button>
+      </div>
+
     </div>
     </div>
     );
+  },
+
+  // Event callback
+  changeSet: function (delta) {
+    var st = this.state;
+    st.currentSetIndex += delta;
+    this.setState(st);
+  },
+
+  // Event callback
+  resetGame: function () {
+    function emptyTeamSet() { return {score: 0, subs: [], timeouts: [null, null], lineup: [1,2,3,4,5,6]}; }
+    function emptySet() { return [emptyTeamSet(), emptyTeamSet()]; }
+    this.setState({
+      currentSetIndex: 0,
+      game: {teams: ['ASV 7', 'Viborg']},
+      sets: [
+        emptySet(), emptySet(), emptySet()
+      ]
+    });
+  },
+
+  // Event callback
+  addScore: function (setIndex, teamIndex, points) {
+    var st = this.state;
+    st.sets[setIndex][teamIndex].score += points;
+    this.setState(st);
+  },
+
+  // Event callback
+  changeTimeout: function (setIndex, teamIndex, timeoutData, timeoutIndex) {
+    var st = this.state;
+    if (timeoutData) {
+      // Make a copy
+      timeoutData = [].slice.call(timeoutData);
+    } else {
+      timeoutData = null;
+    }
+    st.sets[setIndex][teamIndex].timeouts[timeoutIndex] = timeoutData;
+    this.setState(st);
+  },
+
+  // Computed property
+  getMatchScore: function () {
+    var setsWon = [0,0];
+    for (var i = 0; i <= this.state.currentSetIndex; ++i) {
+      var set = this.state.sets[i];
+      if (set[0].score >= SETSCORE) setsWon[0]++;
+      if (set[1].score >= SETSCORE) setsWon[1]++;
+    }
+    return setsWon;
   }
 });
 
 var CurrentSet = React.createClass({
+  /*
+  propTypes: {
+    number: React.PropTypes.number.isRequired,
+    set: React.PropTypes.shape([
+      {
+        score: React.PropTypes.number,
+        lineup: React.PropTypes.arrayOf(React.PropTypes.number),
+        timeouts: React.PropTypes.arrayOf
+      },
+      {score: React.PropTypes.number}
+    ]).isRequired,
+    game: React.PropTypes.shape({
+      teams: React.PropTypes.shape([
+        React.PropTypes.string,
+        React.PropTypes.string
+      ])
+    }).isRequired,
+    onAddScore: React.PropTypes.func.isRequired,
+    onTimeoutChange: React.PropTypes.func.isRequired,
+    matchScore: React.PropTypes.shape([
+      React.PropTypes.number,
+      React.PropTypes.number
+    ]).isRequired
+  },
+  */
   render: function () {
     var number = this.props.number + 1;
     var set = this.props.set;
     var game = this.props.game;
-    var nameLeft = game.teams[0];
-    var nameRight = game.teams[1];
-
     var currentScore = [set[0].score, set[1].score];
 
-    var teamLeftPlus = function () { this.props.onAddScore(0, 1); }.bind(this);
-    var teamLeftMinus = function () { this.props.onAddScore(0, -1); }.bind(this);
-    var teamLeftTimeoutChange = this.props.onTimeoutChange.bind(this, 0);
-    var teamLeftNewTimeout = this.props.onTimeoutChange.bind(this, 0, currentScore);
-    var teamRightPlus = function () { this.props.onAddScore(1, 1); }.bind(this);
-    var teamRightMinus = function () { this.props.onAddScore(1, -1); }.bind(this);
-    var teamRightTimeoutChange = this.props.onTimeoutChange.bind(this, 1);
-    var teamRightNewTimeout = this.props.onTimeoutChange.bind(this, 1, currentScore);
+    var teamSets = [];
+    var sides = ['left', 'right'];
+    for (var i = 0; i < 2; ++i) {
+      var name = game.teams[i];
+      var onScorePlus = this.props.onAddScore.bind(this, i, 1);
+      var onScoreMinus = this.props.onAddScore.bind(this, i, -1);
+      var onTimeoutChange = this.props.onTimeoutChange.bind(this, i);
+      var onNewTimeout = this.props.onTimeoutChange.bind(this, i, currentScore);
+      teamSets.push(
+        <TeamSet key={i} side={sides[i]} teamName={name} set={set[i]}
+          matchScore={this.props.matchScore[i]}
+          onScorePlus={onScorePlus} onScoreMinus={onScoreMinus}
+          onTimeoutChange={onTimeoutChange} onNewTimeout={onNewTimeout}
+          />
+      );
+    }
 
     return (
       <div className="set">
 
       <div className="set_header">Sæt {number}</div>
 
-      <TeamSet side="left" teamName={nameLeft} set={set[0]}
-        matchScore={this.props.matchScore[0]}
-        onScorePlus={teamLeftPlus} onScoreMinus={teamLeftMinus}
-        onTimeoutChange={teamLeftTimeoutChange}
-        onNewTimeout={teamLeftNewTimeout}
-      />
-      <TeamSet side="right" teamName={nameRight} set={set[1]}
-        matchScore={this.props.matchScore[1]}
-        onScorePlus={teamRightPlus} onScoreMinus={teamRightMinus}
-        onTimeoutChange={teamRightTimeoutChange}
-        onNewTimeout={teamRightNewTimeout}
-      />
+      {teamSets}
 
       </div>
       );
@@ -136,12 +189,12 @@ var TeamSet = React.createClass({
         var onChange = function (i, s1, s2) {
           this.props.onTimeoutChange([s1, s2], i);
         }.bind(this, i);
-        timeoutButtons.push(<TimeoutButton className={c} score={timeouts[i]} onChange={onChange} />);
+        timeoutButtons.push(<TimeoutButton key={i} className={c} score={timeouts[i]} onChange={onChange} />);
       } else {
         var onClick = function (i, s1, s2) {
           this.props.onNewTimeout(i);
         }.bind(this, i);
-        timeoutButtons.push(<button className={c} onClick={onClick}>T-O</button>);
+        timeoutButtons.push(<button key={i} className={c} onClick={onClick}>T-O</button>);
       }
     }
     return (
@@ -159,22 +212,7 @@ var TeamSet = React.createClass({
       </div>
       <div className="set_match_score">{this.props.matchScore}</div>
 
-      <div className="set_substitutions">
-        <div className="set_substitutions_title">Udskiftninger</div>
-        <div className="set_substitutions_cell">
-          <div className="set_substitutions_cell_in">1</div>
-          <div className="set_substitutions_cell_in_label">Ind</div>
-          <div className="set_substitutions_cell_out">23</div>
-          <div className="set_substitutions_cell_out_label">Ud</div>
-        </div>
-        <div className="set_substitutions_cell">
-          <button className="set_substitutions_cell_add">+</button>
-        </div>
-        <div className="set_substitutions_cell"></div>
-        <div className="set_substitutions_cell"></div>
-        <div className="set_substitutions_cell"></div>
-        <div className="set_substitutions_cell"></div>
-      </div>
+      <Substitutions subs={this.props.set.subs} />
 
       <CurrentLineup initial={initialLineup} score={score} />
     </div>
@@ -201,12 +239,16 @@ var TimeoutButton = React.createClass({
       );
     }
   },
+
+  // Event callback
   startChange: function () {
     var st = this.state;
     st.changing = true;
     st.score = [this.props.score[0], this.props.score[1]];
     this.setState(st);
   },
+
+  // Event callback
   stopChange: function () {
     var st = this.state;
     this.props.onChange(st.score[0], st.score[1]);
@@ -214,6 +256,8 @@ var TimeoutButton = React.createClass({
     st.score = null;
     this.setState(st);
   },
+
+  // Event callback
   setValue: function (i, value) {
     var st = this.state;
     if (!st.changing) return;
@@ -224,6 +268,20 @@ var TimeoutButton = React.createClass({
 });
 
 var Scroller = React.createClass({
+  render: function () {
+    var values = [];
+    for (var i = this.props.min; i <= this.props.max; ++i) {
+      var c = (i == this.props.value) ? 'scroller_value scroller_selected' : 'scroller_value';
+      values.push(<div className={c}>{i}</div>);
+    }
+    return <div onWheel={this.onWheel} onScroll={this.onScroll} className='scroller'>{values}</div>;
+  },
+  componentDidMount: function () {
+    // Called when the component has been rendered for the first time
+    this.scrollTo(this.props.value);
+  },
+
+  // Helper method
   scrollTo: function (value) {
     var elt = this.getDOMNode();
     if (!elt) return false;
@@ -233,17 +291,8 @@ var Scroller = React.createClass({
     elt.scrollTop = c.offsetTop + c.offsetHeight / 2 - elt.offsetHeight / 2;
     return true;
   },
-  componentDidMount: function () {
-    this.scrollTo(this.props.value);
-  },
-  render: function () {
-    var values = [];
-    for (var i = this.props.min; i <= this.props.max; ++i) {
-      var c = (i == this.props.value) ? 'scroller_value scroller_selected' : 'scroller_value';
-      values.push(<div className={c}>{i}</div>);
-    }
-    return <div onWheel={this.onWheel} onScroll={this.onScroll} className='scroller'>{values}</div>;
-  },
+
+  // Event callback
   onWheel: function (e) {
     var elt = this.getDOMNode();
     var down = (e.deltaX == 0 && e.deltaY > 0);
@@ -257,6 +306,8 @@ var Scroller = React.createClass({
       }
     }
   },
+
+  // Event callback
   onScroll: function () {
     var elt = this.getDOMNode();
     var selectedIndex = -1;
@@ -271,9 +322,55 @@ var Scroller = React.createClass({
       }
     }
     if (selectedIndex != -1 && selectedIndex + this.props.min != this.props.value) {
-      console.log(selectedIndex + this.props.min);
       this.props.onChange(selectedIndex + this.props.min);
     }
+  }
+});
+
+var Substitutions = React.createClass({
+  render: function () {
+    var cells = [];
+    var subs = this.props.subs;
+    for (var i = 0; i < SUBSTITUTIONS; ++i) {
+      if (i < subs.length) {
+        var s = subs[i];
+        cells.push(
+          <Substitution key={i} in_={s[0]} out={s[1]} />
+        );
+      } else if (i == subs.length) {
+        cells.push(
+          <div key={i} className="set_substitutions_cell">
+            <button className="set_substitutions_cell_add"
+              onClick={this.props.onSubstitutionsAdd}>
+            +
+            </button>
+          </div>
+        );
+      } else {
+        cells.push(
+          <div key={i} className="set_substitutions_cell" />
+        );
+      }
+    }
+    return (
+      <div className="set_substitutions">
+        <div className="set_substitutions_title">Udskiftninger</div>
+        {cells}
+      </div>
+      );
+  }
+});
+
+var Substitution = React.createClass({
+  render: function () {
+    return (
+      <div className="set_substitutions_cell">
+        <div className="set_substitutions_cell_in">{this.props.in_}</div>
+        <div className="set_substitutions_cell_in_label">Ind</div>
+        <div className="set_substitutions_cell_out">{this.props.out}</div>
+        <div className="set_substitutions_cell_out_label">Ud</div>
+      </div>
+      );
   }
 });
 
@@ -316,6 +413,7 @@ var ActionList = React.createClass({
     );
   }
 });
+
 ActionList.renderHeader = function () {
   return <div className="actions_header">Handlinger</div>;
 };
@@ -332,7 +430,7 @@ var Results = React.createClass({
       var c0 = (sets[i][0] >= SETSCORE) ? 'results_winner' : '';
       var c1 = (sets[i][1] >= SETSCORE) ? 'results_winner' : '';
       rows.push(
-        <tr>
+        <tr key={i}>
           <td className="results_set">Sæt {i+1}</td>
           <td className={c0}>{sets[i][0]}</td>
           <td className={c1}>{sets[i][1]}</td>
