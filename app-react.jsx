@@ -40,6 +40,34 @@ window.onerror = function () {
 };
 */
 
+function StartSet(st, set) {
+	this.lastSet = st.currentSetIndex;
+	this.nextSet = set;
+	if(set >= st.sets.length) {
+		this.nextSet = st.sets.length - 1;
+	}
+}
+
+StartSet.prototype.invert = function() {
+	return false;
+}
+
+StartSet.prototype.execute = function(st) {
+	st.currentSetIndex = this.nextSet;
+}
+
+StartSet.prototype.undo = function(st) {
+	st.currentSetIndex = this.lastSet;
+}
+
+StartSet.prototype.noop = function() {
+	return this.lastSet == this.nextSet;
+}
+
+StartSet.prototype.description = function() {
+	return "Sæt " +(this.nextSet + 1) + " er startet";
+}
+
 function AddScore(st, setIndex, teamIndex, points) {
   this.setIndex = setIndex;
   this.teamIndex = teamIndex;
@@ -257,16 +285,15 @@ var MatchForm = React.createClass({
   
   changeSetSpecific: function(set) {
 	var st = this.state;
-	st.currentSetIndex = set
-    
 	//boundary check
-	if(st.currentSetIndex >= st.sets.length) {
-		st.currentSetIndex = st.sets.length -1;
+	if(set >= st.sets.length) {
+		set = st.sets.length -1;
 	}
-	if(st.currentSetIndex < 0) {
-		st.currentSetIndex = 0;
+	if(set < 0) {
+		set = 0;
 	}
-    this.setState(st);
+    var action = new StartSet(st, set);
+	this.pushAction(action);
   },
 
   // Event callback
