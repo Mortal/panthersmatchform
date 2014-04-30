@@ -377,8 +377,8 @@ var Substitution = React.createClass({
 var CurrentLineup = React.createClass({
   render: function () {
     var indices =
-      [0, 5, 4,
-       1, 2, 3];
+      [3, 2, 1,
+       4, 5, 0];
     var cells = [];
     var score = this.props.score;
     var players = indices.length;
