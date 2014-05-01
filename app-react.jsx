@@ -307,7 +307,7 @@ var SetupForm = React.createClass({
       <div className="screen setup">
         <div className="setup_header">Volleyball-opsætning</div>
 
-        <SetupFormForm onSubmit={this.onEnter} />
+        <SetupFormForm onSubmit={this.props.onEnter} />
       </div>
     );
   },
