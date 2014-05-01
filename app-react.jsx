@@ -41,6 +41,28 @@ window.onerror = function () {
 };
 */
 
+///////////////////////////////////////////////////////////////////////////////
+// Command pattern classes.
+//
+// Each class implements `execute` and `undo` which take a reference to the
+// MatchForm state and performs or undoes the command.
+//
+// A Command must implement `description` which returns a React Renderable
+// (for instance a string, a React component, or an array of Renderables).
+// The description is used in the action list.
+//
+// A Command may implement `noop` which returns true if the command is a no-op
+// (for instance, adding zero score).
+//
+// A Command may implement `inverts` which takes another Command and returns
+// true if the two commands are each others inverse (for instance, one Command
+// adding a point, and the other Command removing a point from the same team
+// in the same set).
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+// Command for starting a set
+
 function StartSet(st, set) {
   this.lastSet = st.currentSetIndex;
   this.nextSet = set;
@@ -68,6 +90,9 @@ StartSet.prototype.noop = function() {
 StartSet.prototype.description = function() {
   return "Sæt " +(this.nextSet + 1) + " er startet";
 }
+
+//-----------------------------------------------------------------------------
+// Command for adding or subtracting score
 
 function AddScore(st, setIndex, teamIndex, points) {
   this.setIndex = setIndex;
@@ -124,6 +149,9 @@ AddScore.prototype.description = function () {
   }
 };
 
+//-----------------------------------------------------------------------------
+// Command for adding, changing or removing a timeout
+
 function ChangeTimeout(st, setIndex, teamIndex, timeoutData, timeoutIndex) {
   this.setIndex = setIndex;
   this.teamIndex = teamIndex;
@@ -177,6 +205,9 @@ ChangeTimeout.prototype.description = function () {
   }
 };
 
+//-----------------------------------------------------------------------------
+// Command for adding a substitution
+
 function SubstitutionCommand(st, setIndex, teamIndex, playerIn, playerOut) {
   this.setIndex = setIndex;
   this.teamIndex = teamIndex;
@@ -221,6 +252,14 @@ SubstitutionCommand.prototype.noop = function () {
 SubstitutionCommand.prototype.description = function () {
   return <div>{this.teamName} udskifter {this.playerOut} med {this.playerIn}</div>;
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// React Component implementations.
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+// The root component, implementing the game state (aka. game model) and
+// displaying all UI components.
 
 var MatchForm = React.createClass({
   getInitialState: function () {
@@ -438,6 +477,9 @@ var MatchForm = React.createClass({
   }
 });
 
+//-----------------------------------------------------------------------------
+// Component for the left-hand side of the screen, showing the current set.
+
 var CurrentSet = React.createClass({
   /*
   propTypes: {
@@ -502,6 +544,9 @@ var CurrentSet = React.createClass({
   }
 });
 
+//-----------------------------------------------------------------------------
+// Subcomponent of CurrentSet, showing one of the teams.
+
 var TeamSet = React.createClass({
   render: function () {
     var initialLineup = this.props.set.lineup;
@@ -545,6 +590,9 @@ var TeamSet = React.createClass({
     );
   }
 });
+
+//-----------------------------------------------------------------------------
+// Subcomponent of TeamSet, showing a button for editing a timeout.
 
 var TimeoutButton = React.createClass({
   getInitialState: function () {
@@ -592,6 +640,9 @@ var TimeoutButton = React.createClass({
     this.setState(st);
   }
 });
+
+//-----------------------------------------------------------------------------
+// Reusable form component for choosing an integer from a scrollable list.
 
 var Scroller = React.createClass({
   render: function () {
@@ -653,6 +704,9 @@ var Scroller = React.createClass({
   }
 });
 
+//-----------------------------------------------------------------------------
+// Subcomponent of TeamSet for showing the list of substitutions.
+
 var Substitutions = React.createClass({
   render: function () {
     var cells = [];
@@ -687,6 +741,9 @@ var Substitutions = React.createClass({
   }
 });
 
+//-----------------------------------------------------------------------------
+// Subcomponent of Substitutions.
+
 var Substitution = React.createClass({
   render: function () {
     return (
@@ -699,6 +756,9 @@ var Substitution = React.createClass({
       );
   }
 });
+
+//-----------------------------------------------------------------------------
+// Subcomponent of TeamSet for showing the current lineup.
 
 var CurrentLineup = React.createClass({
   render: function () {
@@ -720,6 +780,9 @@ var CurrentLineup = React.createClass({
       );
   }
 });
+
+//-----------------------------------------------------------------------------
+// Right hand side of the screen when a substitution is being added.
 
 var SubstitutionsModal = React.createClass({
   getInitialState: function () {
@@ -804,6 +867,9 @@ var SubstitutionsModal = React.createClass({
   }
 });
 
+//-----------------------------------------------------------------------------
+// Subcomponent of SubstitutionsModal for showing one of the two player lists.
+
 var SubstitutionsPlayerList = React.createClass({
   render: function () {
     var className = 'subs_column subs_column_'+this.props.side;
@@ -872,6 +938,10 @@ var SubstitutionsPlayerList = React.createClass({
   }
 });
 
+//-----------------------------------------------------------------------------
+// Component for the right-hand side of the screen, showing the action list
+// and the big undo button.
+
 var ActionList = React.createClass({
   render: function () {
     actions = [].slice.call(this.props.actions);
@@ -908,6 +978,9 @@ var ActionList = React.createClass({
 ActionList.renderHeader = function () {
   return <div className="modal_header">Handlinger</div>;
 };
+
+//-----------------------------------------------------------------------------
+// Component for the right-hand side of the screen, showing the match results.
 
 var Results = React.createClass({
   render: function () {
@@ -956,6 +1029,9 @@ var Results = React.createClass({
     );
   }
 });
+
+//-----------------------------------------------------------------------------
+// Reusable component for a <button> DOM object with touch event handlers.
 
 var TouchButton = React.createClass({
   getDefaultProps: function () {
@@ -1018,6 +1094,10 @@ var TouchButton = React.createClass({
     this.setState({touching: false});
   }
 });
+
+///////////////////////////////////////////////////////////////////////////////
+// Runtime initialization.
+///////////////////////////////////////////////////////////////////////////////
 
 React.initializeTouchEvents(true);
 React.renderComponent(<MatchForm />, document.body);
