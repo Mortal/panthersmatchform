@@ -714,7 +714,7 @@ var MatchForm = React.createClass({
         var currentSet = this.state.sets[this.state.currentSetIndex];
         console.log(i);
         currentSet.teams[i].lineup = v;
-        this.replaceSet(this.state);
+        this.replaceState(this.state);
       }.bind(this)
     };
 
@@ -787,6 +787,9 @@ var MatchForm = React.createClass({
 // Component for the left-hand side of the screen, showing the current set.
 
 var CurrentSet = React.createClass({
+  getInitialState: function () {
+    return {swapped: false};
+  },
   /*
   propTypes: {
     number: React.PropTypes.number.isRequired,
@@ -820,7 +823,8 @@ var CurrentSet = React.createClass({
 
     var teamSets = [];
     var sides = ['left', 'right'];
-    for (var i = 0; i < 2; ++i) {
+    for (var j = 0; j < 2; ++j) {
+      var i = this.state.swapped ? (1-j) : j;
       var lineupLink = {
         value: this.props.lineupLink.value[i],
         requestChange: function (i, v) {
@@ -836,7 +840,7 @@ var CurrentSet = React.createClass({
       var serve = set.serve;
       teamSets.push(
         <TeamSet key={i} serve={serve === i}
-          side={sides[i]} teamName={name} set={set.teams[i]}
+          side={sides[j]} teamName={name} set={set.teams[i]}
           lineupLink={lineupLink}
           matchScore={this.props.matchScore[i]}
           onScorePlus={onScorePlus} onScoreMinus={onScoreMinus}
@@ -851,11 +855,19 @@ var CurrentSet = React.createClass({
 
       <div className="set_header">Sæt {number}</div>
 
+      <button className="set_swap_sides" onClick={this.swap}>
+        <img src="swap.svg" style={{width: 32, height: 32}} />
+      </button>
+
       {teamSets}
 
       </div>
       );
 
+  },
+
+  swap: function () {
+    this.setState({swapped: !this.state.swapped});
   }
 });
 
