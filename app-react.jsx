@@ -1081,7 +1081,14 @@ var CurrentLineup = React.createClass({
     var lineup = this.props.lineupLink.value;
     for (var i = 0; i < players; ++i) {
       var j = lineup[indices[i]];
-      cells.push(<div key={j} className="set_lineup_cell">{j}</div>);
+      var serve = ((indices[i] == 0 && this.props.serve)
+        ? <img src="ball.png" className="set_lineup_serve" />
+        : null);
+      cells.push(
+        <div key={j} className="set_lineup_cell">
+          {j} {serve}
+        </div>
+      );
     }
     return (
       <div className="set_lineup">

@@ -91,6 +91,11 @@ body {
     left: 0;
 }
 
+.set_lineup_serve {
+    width: 20px;
+    height: 20px;
+}
+
 .set_score {
     position: absolute;
     width: 166px;
