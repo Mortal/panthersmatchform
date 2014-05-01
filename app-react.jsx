@@ -295,7 +295,7 @@ var MatchForm = React.createClass({
         && action.inverts(st.actions[st.actions.length-1]))
     {
       this.popAction();
-    } else if (!action.noop()) {
+    } else if (!action.noop || !action.noop()) {
       st.actions.push(action);
       action.execute(st);
       this.setState(st);
