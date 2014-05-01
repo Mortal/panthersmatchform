@@ -3,6 +3,8 @@
 
 var SETS = 3;
 var SETSCORE = 25;
+var FINALSETSCORE = 15;
+var SETAHEAD = 2;
 var TIMEOUTS = 2;
 var SUBSTITUTIONS = 6;
 var MAXPLAYERNUMBER = 30;
@@ -40,6 +42,13 @@ window.onerror = function () {
   console.log.apply(null, arguments);
 };
 */
+
+function getSetWinner(setIndex, s1, s2) {
+  var needed = (setIndex == 2) ? FINALSETSCORE : SETSCORE;
+  if (s1 >= needed && s1 >= s2 + SETAHEAD) return 0;
+  else if (s2 >= needed && s2 >= s1 + SETAHEAD) return 1;
+  else return -1;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Command pattern classes.
@@ -616,10 +625,14 @@ var MatchForm = React.createClass({
 
     var nextSetButton;
     if (this.getNextSet() != this.state.sets.length) {
+      var className = 'next_button';
+      if (this.getSetWinner(this.state.currentSetIndex) != -1) {
+        className += ' next_button_active';
+      }
       nextSetButton = (
         <TouchButton
           onClick={this.changeSet.bind(this, +1)}
-          className="next_button">
+          className={className}>
           Start sæt {this.getNextSet() + 1}
         </TouchButton>
       );
@@ -753,13 +766,18 @@ var MatchForm = React.createClass({
     this.setState({showSubstitutionTeamIndex: teamIndex});
   },
 
+  getSetWinner: function (setIndex) {
+    var s1 = this.state.sets[setIndex].teams[0].score;
+    var s2 = this.state.sets[setIndex].teams[1].score;
+    return getSetWinner(setIndex, s1, s2);
+  },
+
   // Computed property
   getMatchScore: function () {
     var setsWon = [0,0];
     for (var i = 0; i <= this.state.currentSetIndex; ++i) {
-      var set = this.state.sets[i];
-      if (set.teams[0].score >= SETSCORE) setsWon[0]++;
-      if (set.teams[1].score >= SETSCORE) setsWon[1]++;
+      var winner = this.getSetWinner(i);
+      if (winner != -1) setsWon[winner]++;
     }
     return setsWon;
   }
@@ -1327,8 +1345,9 @@ var Results = React.createClass({
     }
     var rows = [];
     for (var i = 0; i < sets.length; ++i) {
-      var c0 = (sets[i][0] >= SETSCORE) ? 'results_winner' : '';
-      var c1 = (sets[i][1] >= SETSCORE) ? 'results_winner' : '';
+      var winner = getSetWinner(i, sets[i][0], sets[i][1]);
+      var c0 = (winner == 0) ? 'results_winner' : '';
+      var c1 = (winner == 1) ? 'results_winner' : '';
       rows.push(
         <tr key={i} className={this.props.currentSet == i ? "active_set" : ""}>
           <td className="results_set">Sæt {i+1}</td>

@@ -582,12 +582,20 @@ td.results_set {
 }
 
 .next_button {
-	position: absolute;
-	top: 620px;
-	left: 5px;
-	padding: 10px;
-	font-size: 18px;
-	width: 160px;
+    position: absolute;
+    top: 620px;
+    left: 5px;
+    padding: 10px;
+    font-size: 18px;
+    width: 160px;
+    border: 3px solid #666;
+    background-color: white;
+}
+
+.next_button_active {
+    background-color: #4c9433;
+    color: white;
+    border: 3px solid #38811E;
 }
 
 .setup_team {
