@@ -678,7 +678,6 @@ var MatchForm = React.createClass({
 
           {nextSetButton}
           <div style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
-            <TouchButton onClick={this.changeSet.bind(this, -1)}>Forrige sæt</TouchButton>
             <TouchButton onClick={function () {location.reload();}}>Reload</TouchButton>
             <TouchButton onClick={this.props.onExit}>Forlad spillet</TouchButton>
             <span id="messages" />
