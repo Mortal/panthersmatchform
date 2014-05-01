@@ -1398,7 +1398,8 @@ var TouchButton = React.createClass({
     );
   },
   onClick: function (e) {
-    this.props.onClick(e);
+    if (this.props.onClick)
+      this.props.onClick(e);
   },
   onTouchStart: function (e) {
     if (e.touches.length != 1) {
@@ -1428,7 +1429,8 @@ var TouchButton = React.createClass({
         && e.changedTouches.length == 1
         && e.changedTouches[0].identifier == this.state.identifier)
     {
-      this.props.onClick();
+      if (this.props.onClick)
+        this.props.onClick();
 
       // preventDefault *should* prevent the cascade
       // into mouse events and click event.
