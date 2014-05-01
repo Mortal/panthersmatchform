@@ -71,10 +71,6 @@ function StartSet(st, set) {
   }
 }
 
-StartSet.prototype.invert = function() {
-  return false;
-}
-
 StartSet.prototype.execute = function(st) {
   st.currentSetIndex = this.nextSet;
 }
