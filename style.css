@@ -539,3 +539,60 @@ td.results_set {
 	font-size: 18px;
 	width: 160px;
 }
+
+.setup_team {
+    position: absolute;
+    top: 20%;
+    bottom: 10%;
+    width: 40%;
+}
+
+.setup_team.team_left {
+    left: 5%;
+}
+
+.setup_team.team_right {
+    right: 5%;
+}
+
+.setup_team_header {
+    text-align: center;
+    font-weight: bold;
+    background-color: #ccc;
+    font-size: 24px;
+    height: 32px;
+    line-height: 32px;
+}
+
+.setup_player_list {
+    overflow: auto;
+    position: absolute;
+    top: 40px;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+.setup_buttons {
+    position: absolute;
+    left: 5%;
+    right: 5%;
+    top: 10%;
+    text-align: center;
+}
+
+.setup_button_submit, .setup_button_reset {
+    padding: 10px;
+    border: 0 none black;
+    color: white;
+    font-size: 20px;
+    margin-right: 16px;
+}
+
+.setup_button_submit {
+    background-color: #4c9433;
+}
+
+.setup_button_reset {
+    background-color: #D72536;
+}

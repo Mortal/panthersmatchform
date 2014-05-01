@@ -372,14 +372,42 @@ var SetupFormForm = React.createClass({
       };
     }.bind(this);
 
+    var nonemptyName = function (player) {
+      return player.name != '';
+    };
+
+    var playerCount = function (team) {
+      return team.players.filter(nonemptyName).length;
+    };
+
+    var players = [this.state.team1, this.state.team2].map(playerCount);
+
     return (
       <div>
-        <div>
-          <TouchButton onClick={this.submit}>Start spillet</TouchButton>
-          <TouchButton onClick={this.clear}>Ryd alt</TouchButton>
+        <div className="setup_buttons">
+          <TouchButton
+            className="setup_button_submit"
+            onClick={this.submit}>
+            Start spillet
+          </TouchButton>
+          <TouchButton
+            className="setup_button_reset"
+            onClick={this.clear}>
+            Ryd alt
+          </TouchButton>
         </div>
-        <SetupPlayerList valueLink={dataLink(stateAccessor, 'team1')} />
-        <SetupPlayerList valueLink={dataLink(stateAccessor, 'team2')} />
+        <div
+          className="setup_team team_left">
+          <div className="setup_team_header">Hold A ({players[0]})</div>
+          <SetupPlayerList
+            valueLink={dataLink(stateAccessor, 'team1')} />
+        </div>
+        <div
+          className="setup_team team_right">
+          <div className="setup_team_header">Hold B ({players[1]})</div>
+          <SetupPlayerList
+            valueLink={dataLink(stateAccessor, 'team2')} />
+        </div>
       </div>
     );
   },
@@ -432,23 +460,22 @@ var SetupPlayerList = React.createClass({
     var playerLink = dataLink('players');
     var players = playerLink.value.map(
       function (player, i) {
+        var l = playerLink.subLink(i);
         return (
-          <li key={i}>
+          <li value={l.value.number} key={i}>
             <input type="text"
-              valueLink={playerLink.subLink(i).subLink('number')} />
-            <input type="text"
-              valueLink={playerLink.subLink(i).subLink('name')} />
+              valueLink={l.subLink('name')} />
           </li>
         );
       }
     );
 
     return (
-      <div>
-        <div><input type="text" valueLink={dataLink('name')} /></div>
-        <ul>
+      <div className="setup_player_list">
+        <div>Navn: <input type="text" valueLink={dataLink('name')} /></div>
+        <ol>
           {players}
-        </ul>
+        </ol>
       </div>
     );
   }
