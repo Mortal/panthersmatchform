@@ -69,6 +69,14 @@ function getSetWinner(setIndex, s1, s2) {
 // in the same set).
 ///////////////////////////////////////////////////////////////////////////////
 
+function GenericMessage(s) {
+  this.s = s;
+}
+
+GenericMessage.prototype.execute = function (st) {};
+GenericMessage.prototype.undo = function (st) {};
+GenericMessage.prototype.description = function () { return ''+this.s; };
+
 //-----------------------------------------------------------------------------
 // Command for starting a set
 
@@ -315,10 +323,10 @@ var GameStateManager = React.createClass({
       this.replaceState({state: v});
     };
     if (st == 'matchform') {
-      return <MatchForm onExit={setState.bind(this, 'setup')} />;
+      return <MatchForm ref="matchform" onExit={setState.bind(this, 'setup')} />;
     } else {
       // setup
-      return <SetupForm onEnter={setState.bind(this, 'matchform')} />;
+      return <SetupForm ref="setupform" onEnter={setState.bind(this, 'matchform')} />;
     }
   }
 });
@@ -1450,44 +1458,45 @@ var TouchButton = React.createClass({
       this.props.onClick(e);
   },
   onTouchStart: function (e) {
-    if (e.touches.length != 1) {
+    if (e.changedTouches.length != 1) {
+      return;
+    }
+    var touch = e.changedTouches[0];
+    this.replaceState({
+      touching: true,
+      identifier: touch.identifier,
+      x: touch.pageX,
+      y: touch.pageY,
+      target: this.getDOMNode()
+    });
+  },
+  onTouchMove: function (e) {
+    if (!this.state.touching) return;
+    var knownTouches = [].slice.call(e.touches).filter(
+      function (t) { return t.identifier == this.state.identifier; }.bind(this));
+    if (!knownTouches.length) return;
+    var touch = knownTouches[0];
+    var dx = touch.pageX - this.state.x;
+    var dy = touch.pageY - this.state.y;
+    var d2 = dx*dx + dy*dy;
+    if (d2 > 20*20) {
       this.replaceState({touching: false});
       return;
     }
-    this.replaceState({
-      touching: true,
-      identifier: e.touches[0].identifier,
-      target: this.getDOMNode()
-    });
     e.preventDefault();
   },
-  onTouchMove: function (e) {
-    if (this.state.touching
-        && e.touches.length == 1
-        && e.touches[0].identifier == this.state.identifier)
-    {
-      e.preventDefault();
-      var touch = e.touches[0];
-      var tgt = document.elementFromPoint(touch.pageX, touch.pageY);
-      if (!this.state.target.contains(tgt)) {
-        //console.log("moved outside target "+this.state.target.className+" "+tgt.className);
-        this.replaceState({touching: false});
-      }
-    }
-  },
   onTouchEnd: function (e) {
-    //console.log('end '+e.changedTouches.length+' '+this.changedTouches[0].identifier+' '+e);
-    if (this.state.touching
-        && e.changedTouches.length == 1
-        && e.changedTouches[0].identifier == this.state.identifier)
-    {
-      if (this.props.onClick)
-        this.props.onClick();
+    if (!this.state.touching) return;
+    var knownTouches = [].slice.call(e.changedTouches).filter(
+      function (t) { return t.identifier == this.state.identifier; }.bind(this));
+    if (!knownTouches.length) return;
+    var touch = knownTouches[0];
+    if (this.props.onClick)
+      this.props.onClick();
 
-      // preventDefault *should* prevent the cascade
-      // into mouse events and click event.
-      e.preventDefault();
-    }
+    // preventDefault *should* prevent the cascade
+    // into mouse events and click event.
+    e.preventDefault();
     this.replaceState({touching: false});
   }
 });
@@ -1497,10 +1506,12 @@ var TouchButton = React.createClass({
 ///////////////////////////////////////////////////////////////////////////////
 
 React.initializeTouchEvents(true);
-React.renderComponent(<GameStateManager />, document.body);
-
-window.addEventListener('touchstart', function (e) {
-  if (e.touches.length > 1) {
-    e.preventDefault();
-  }
-}, false);
+var gsm = <GameStateManager />;
+React.renderComponent(gsm, document.body);
+window.onerror = function (s, file, line) {
+  var refs = gsm.refs;
+  if (!refs) return alert('no refs');
+  var matchform = refs.matchform;
+  if (!matchform) return alert('no matchform');
+  matchform.pushAction(new GenericMessage(s+' (file: '+file+' line: '+line+')'));
+};
