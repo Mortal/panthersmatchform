@@ -871,9 +871,9 @@ var CurrentSet = React.createClass({
 
       <div className="set_header">Sæt {number}</div>
 
-      <button className="set_swap_sides" onClick={this.swap}>
+      <TouchButton className="set_swap_sides" onClick={this.swap}>
         <img src="swap.svg" style={{width: 32, height: 32}} />
-      </button>
+      </TouchButton>
 
       {teamSets}
 
