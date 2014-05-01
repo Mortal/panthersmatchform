@@ -1124,23 +1124,39 @@ var Substitution = React.createClass({
 
 var CurrentLineup = React.createClass({
   render: function () {
+    var lineup = this.props.lineupLink.value;
     var indices =
       [3, 2, 1,
        4, 5, 0];
+    if (lineup.length == 5) {
+      indices =
+        [3, 2, 1,
+         null, 4, 0];
+    } else if (lineup.length == 4) {
+      indices =
+        [3, 2, 1,
+         null, null, 0];
+    }
     var cells = [];
     var score = this.props.score;
     var players = indices.length;
-    var lineup = this.props.lineupLink.value;
     for (var i = 0; i < players; ++i) {
-      var j = lineup[indices[i]];
-      var serve = ((indices[i] == 0 && this.props.serve)
-        ? <img src="ball.png" className="set_lineup_serve" />
-        : null);
-      cells.push(
-        <div key={j} className="set_lineup_cell">
-          {j} {serve}
-        </div>
-      );
+      if (indices[i] === null) {
+        cells.push(
+          <div key={-i-1} className="set_lineup_cell" style={{color: 'white'}}>
+          0</div>
+        );
+      } else {
+        var j = lineup[indices[i]];
+        var serve = ((indices[i] == 0 && this.props.serve)
+          ? <img src="ball.png" className="set_lineup_serve" />
+          : null);
+        cells.push(
+          <div key={j} className="set_lineup_cell">
+            {j} {serve}
+          </div>
+        );
+      }
     }
     return (
       <div className="set_lineup">
