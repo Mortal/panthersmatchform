@@ -331,26 +331,27 @@ var SetupFormForm = React.createClass({
     };
   },
 
+  existingTeamState: function (team) {
+    var existing = {};
+    for (var i = 0; i < team.players.length; ++i) {
+      existing[team.players[i].number] = team.players[i].name;
+    }
+    var players = [];
+    for (var i = 1; i <= MAXPLAYERNUMBER; ++i) {
+      players.push({number: i, name: existing[i] || ''});
+    }
+    return {
+      name: team.name,
+      players: players
+    };
+  },
+
   getInitialState: function () {
     var v = currentGameStorage.get();
     if (!v) return this.getEmptyState();
-    function existingTeamState(team) {
-      var existing = {};
-      for (var i = 0; i < team.players.length; ++i) {
-        existing[team.players[i].number] = team.players[i].name;
-      }
-      var players = [];
-      for (var i = 1; i <= MAXPLAYERNUMBER; ++i) {
-        players.push({number: i, name: existing[i] || ''});
-      }
-      return {
-        name: team.name,
-        players: players
-      };
-    }
     return {
-      team1: existingTeamState(v.game.teams[0]),
-      team2: existingTeamState(v.game.teams[1])
+      team1: this.existingTeamState(v.game.teams[0]),
+      team2: this.existingTeamState(v.game.teams[1])
     };
   },
 
@@ -382,6 +383,27 @@ var SetupFormForm = React.createClass({
 
     var players = [this.state.team1, this.state.team2].map(playerCount);
 
+    var resetButton = (
+      <TouchButton
+        className="setup_button_reset"
+        onClick={this.clear}>
+        Ryd alt
+      </TouchButton>
+    );
+
+    if (players[0] == 0 && players[1] == 0
+        && this.state.team1.name == ''
+        && this.state.team2.name == '')
+    {
+      resetButton = (
+        <TouchButton
+          className="setup_button_reset"
+          onClick={this.autoFill}>
+          Autofill
+        </TouchButton>
+      );
+    }
+
     return (
       <div>
         <div className="setup_buttons">
@@ -390,11 +412,7 @@ var SetupFormForm = React.createClass({
             onClick={this.submit}>
             Start spillet
           </TouchButton>
-          <TouchButton
-            className="setup_button_reset"
-            onClick={this.clear}>
-            Ryd alt
-          </TouchButton>
+          {resetButton}
         </div>
         <div
           className="setup_team team_left">
@@ -410,6 +428,40 @@ var SetupFormForm = React.createClass({
         </div>
       </div>
     );
+  },
+
+  clear: function () {
+    this.setState(this.getEmptyState());
+  },
+
+  autoFill: function () {
+    // Supply some default values
+
+    function make_player_list(names_string) {
+      var names = names_string.split(' ');
+      var numbers = [1, 2, 7, 8, 12, 23, 4, 10, 15, 19];
+      var players = [];
+      for (var i = 0; i < names.length; ++i) {
+        players.push({number: numbers[i], name: names[i]});
+      }
+      return players;
+    }
+
+    st = {
+      team1: this.existingTeamState({
+        name: 'ASV 7',
+        players: make_player_list(
+          'Mathias Christina Diana Mette Karina Christian Martin Steffen')
+      }),
+      team2: this.existingTeamState({
+        name: 'Viborg',
+        players: make_player_list(
+          'Anja Amalie Jonas Mie Oliver '
+          +'Rasmus Asger Benedikte Alexandra Dennis')
+      })
+    };
+
+    this.setState(st);
   },
 
   submit: function () {
