@@ -673,7 +673,8 @@ var MatchForm = React.createClass({
       var onSubmit = function (playerInNumber, playerOutNumber) {
         var teamIndex = this.state.showSubstitutionTeamIndex;
 
-        this.setState({showSubstitutionTeamIndex: -1});
+        this.state.showSubstitutionTeamIndex = -1;
+        this.replaceState(this.state);
 
         this.pushAction(new SubstitutionCommand(
           this.state, this.state.currentSetIndex, teamIndex,
