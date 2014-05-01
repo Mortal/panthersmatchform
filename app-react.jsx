@@ -94,19 +94,32 @@ function AddScore(st, setIndex, teamIndex, points) {
   this.setIndex = setIndex;
   this.teamIndex = teamIndex;
   this.points = points;
-  if (st.sets[setIndex][teamIndex].score + this.points < 0) {
-    this.points = -st.sets[setIndex][teamIndex].score;
+  if (st.sets[setIndex].teams[teamIndex].score + this.points < 0) {
+    this.points = -st.sets[setIndex].teams[teamIndex].score;
   }
   this.teamName = st.game.teams[teamIndex].name;
   this.teamNames = [st.game.teams[0].name, st.game.teams[1].name];
   var set = st.sets[setIndex];
-  this.newScore = [set[0].score, set[1].score];
+  this.newScore = [set.teams[0].score, set.teams[1].score];
   this.newScore[teamIndex] += this.points;
 }
 
 AddScore.prototype.execute = function (st) {
-  var newScore = st.sets[this.setIndex][this.teamIndex].score + this.points;
-  st.sets[this.setIndex][this.teamIndex].score = newScore;
+  var currentSet = st.sets[this.setIndex];
+  var currentTeamSet = currentSet.teams[this.teamIndex];
+  var newScore = currentTeamSet.score + this.points;
+  currentTeamSet.score = newScore;
+  if (currentSet.serve != this.teamIndex) {
+    currentSet.serve = this.teamIndex;
+
+    var lineup = currentTeamSet.lineup;
+    var amount = 1;
+    var a = lineup.slice(0, amount);
+    var b = lineup.slice(amount);
+    lineup = b;
+    lineup.push.apply(lineup, a);
+    currentTeamSet.lineup = lineup;
+  }
 };
 
 AddScore.prototype.inverts = function (other) {
@@ -121,14 +134,14 @@ AddScore.prototype.noop = function () {
 };
 
 AddScore.prototype.undo = function (st) {
-  var newScore = st.sets[this.setIndex][this.teamIndex].score - this.points;
-  st.sets[this.setIndex][this.teamIndex].score = newScore;
+  var newScore = st.sets[this.setIndex].teams[this.teamIndex].score - this.points;
+  st.sets[this.setIndex].teams[this.teamIndex].score = newScore;
 };
 
 AddScore.prototype.description = function () {
   if (this.points == 1) {
     var balls = ['', ''];
-    balls[this.teamIndex] = <img src='ball.png' />;
+    balls[this.teamIndex] = <img src="ball.png" />;
     return (
       <div className="goal_action">
         <div className="goal_action_left_name">{this.teamNames[0]} {balls[0]}</div>
@@ -156,20 +169,20 @@ function ChangeTimeout(st, setIndex, teamIndex, timeoutData, timeoutIndex) {
   this.teamName = st.game.teams[teamIndex].name;
   this.oldTimeout = null;
   var set = st.sets[setIndex];
-  var teamTimeouts = set[teamIndex].timeouts;
+  var teamTimeouts = set.teams[teamIndex].timeouts;
   if (teamTimeouts && teamTimeouts[timeoutIndex]) {
     this.oldTimeout = [].slice.call(teamTimeouts[timeoutIndex]);
   }
 }
 
 ChangeTimeout.prototype.execute = function (st) {
-  st.sets[this.setIndex][this.teamIndex].timeouts[this.timeoutIndex] = (
+  st.sets[this.setIndex].teams[this.teamIndex].timeouts[this.timeoutIndex] = (
     this.timeoutData);
 };
 
 ChangeTimeout.prototype.undo = function (st) {
   var set = st.sets[this.setIndex];
-  set[this.teamIndex].timeouts[this.timeoutIndex] = this.oldTimeout;
+  set.teams[this.teamIndex].timeouts[this.timeoutIndex] = this.oldTimeout;
 };
 
 function timeoutEquals(t1, t2) {
@@ -214,7 +227,7 @@ function SubstitutionCommand(st, setIndex, teamIndex, playerIn, playerOut) {
 
 SubstitutionCommand.prototype.execute = function (st) {
   var currentSet = st.sets[this.setIndex];
-  var currentTeamSet = currentSet[this.teamIndex];
+  var currentTeamSet = currentSet.teams[this.teamIndex];
   var lineup = currentTeamSet.lineup;
   console.log(lineup, this.playerOut);
   for (var i = 0; i < lineup.length; ++i) {
@@ -227,7 +240,7 @@ SubstitutionCommand.prototype.execute = function (st) {
 
 SubstitutionCommand.prototype.undo = function (st) {
   var currentSet = st.sets[this.setIndex];
-  var currentTeamSet = currentSet[this.teamIndex];
+  var currentTeamSet = currentSet.teams[this.teamIndex];
   var lineup = currentTeamSet.lineup;
   for (var i = 0; i < lineup.length; ++i) {
     if (lineup[i] == this.playerIn) {
@@ -480,7 +493,11 @@ var SetupFormForm = React.createClass({
     }
 
     function generateSet(teams) {
-      return teams.map(generateSetTeam);
+      var set = {
+        teams: teams.map(generateSetTeam),
+        serve: 0
+      };
+      return set;
     }
 
     var st = this.state;
@@ -539,38 +556,7 @@ var SetupPlayerList = React.createClass({
 
 var MatchForm = React.createClass({
   getInitialState: function () {
-    var st = currentGameStorage.get();
-    if (st) return st;
-
-    // Supply some default values
-
-    function make_player_list(names_string) {
-      var names = names_string.split(' ');
-      var numbers = [1, 2, 7, 8, 12, 23, 4, 10, 15, 19];
-      var players = [];
-      for (var i = 0; i < names.length; ++i) {
-        players.push({number: numbers[i], name: names[i]});
-      }
-      return players;
-    }
-
-    return {
-      showSubstitutionTeamIndex: -1,
-      currentSetIndex: 0,
-      game: {
-        teams: [{
-          name: 'ASV 7',
-          players: make_player_list('Mathias Christina Diana Mette Karina Christian Martin Steffen')
-        }, {
-          name: 'Viborg',
-          players: make_player_list('Anja Amalie Jonas Mie Oliver Rasmus Asger Benedikte Alexandra Dennis')
-        }]
-      },
-      sets: [
-        generateNewSet(),generateNewSet(), generateNewSet()
-      ],
-      actions: []
-    };
+    return currentGameStorage.get();
   },
 
   pushAction: function (action) {
@@ -620,7 +606,8 @@ var MatchForm = React.createClass({
 
   render: function () {
     var addScore = function (teamIndex, points) {
-      this.pushAction(new AddScore(this.state, this.state.currentSetIndex, teamIndex, points));
+      this.pushAction(
+        new AddScore(this.state, this.state.currentSetIndex, teamIndex, points));
     }.bind(this);
 
     var changeTimeout = function (setIndex, teamIndex, timeoutData, timeoutIndex) {
@@ -638,7 +625,7 @@ var MatchForm = React.createClass({
 
     if (this.state.showSubstitutionTeamIndex != -1) {
       var currentSet = this.state.sets[this.state.currentSetIndex];
-      var currentTeamSet = currentSet[this.state.showSubstitutionTeamIndex];
+      var currentTeamSet = currentSet.teams[this.state.showSubstitutionTeamIndex];
       var currentLineup = currentTeamSet.lineup;
       var players = (this.state.game.teams[this.state.showSubstitutionTeamIndex]
                      .players);
@@ -702,7 +689,16 @@ var MatchForm = React.createClass({
       );
     }
 
-
+    var currentSet = this.state.sets[this.state.currentSetIndex];
+    var lineupLink = {
+      value: [currentSet.teams[0].lineup, currentSet.teams[1].lineup],
+      requestChangeIndex: function (i, v) {
+        var currentSet = this.state.sets[this.state.currentSetIndex];
+        console.log(i);
+        currentSet.teams[i].lineup = v;
+        this.setState(this.state);
+      }.bind(this)
+    };
 
     return (
     <div className="screen">
@@ -710,7 +706,8 @@ var MatchForm = React.createClass({
     <CurrentSet
       number={this.state.currentSetIndex}
       game={this.state.game}
-      set={this.state.sets[this.state.currentSetIndex]}
+      set={currentSet}
+      lineupLink={lineupLink}
       matchScore={this.getMatchScore()}
       onAddScore={addScore}
       onTimeoutChange={changeTimeout}
@@ -765,8 +762,8 @@ var MatchForm = React.createClass({
     var setsWon = [0,0];
     for (var i = 0; i <= this.state.currentSetIndex; ++i) {
       var set = this.state.sets[i];
-      if (set[0].score >= SETSCORE) setsWon[0]++;
-      if (set[1].score >= SETSCORE) setsWon[1]++;
+      if (set.teams[0].score >= SETSCORE) setsWon[0]++;
+      if (set.teams[1].score >= SETSCORE) setsWon[1]++;
     }
     return setsWon;
   }
@@ -805,19 +802,28 @@ var CurrentSet = React.createClass({
     var number = this.props.number + 1;
     var set = this.props.set;
     var game = this.props.game;
-    var currentScore = [set[0].score, set[1].score];
+    var currentScore = [set.teams[0].score, set.teams[1].score];
 
     var teamSets = [];
     var sides = ['left', 'right'];
     for (var i = 0; i < 2; ++i) {
+      var lineupLink = {
+        value: this.props.lineupLink.value[i],
+        requestChange: function (i, v) {
+          this.props.lineupLink.requestChangeIndex(i, v);
+        }.bind(this, i)
+      };
       var name = game.teams[i].name;
       var onScorePlus = this.props.onAddScore.bind(this, i, 1);
       var onScoreMinus = this.props.onAddScore.bind(this, i, -1);
       var onTimeoutChange = this.props.onTimeoutChange.bind(this, i);
       var onNewTimeout = this.props.onTimeoutChange.bind(this, i, currentScore);
       var onSubstitution = this.props.onSubstitution.bind(this, i);
+      var serve = set.serve;
       teamSets.push(
-        <TeamSet key={i} side={sides[i]} teamName={name} set={set[i]}
+        <TeamSet key={i} serve={serve === i}
+          side={sides[i]} teamName={name} set={set.teams[i]}
+          lineupLink={lineupLink}
           matchScore={this.props.matchScore[i]}
           onScorePlus={onScorePlus} onScoreMinus={onScoreMinus}
           onTimeoutChange={onTimeoutChange} onNewTimeout={onNewTimeout}
@@ -844,7 +850,6 @@ var CurrentSet = React.createClass({
 
 var TeamSet = React.createClass({
   render: function () {
-    var initialLineup = this.props.set.lineup;
     var score = this.props.set.score;
     var timeouts = this.props.set.timeouts;
     var timeoutButtons = [];
@@ -862,10 +867,18 @@ var TeamSet = React.createClass({
         timeoutButtons.push(<TouchButton key={i} className={c} onClick={onClick}>T-O</TouchButton>);
       }
     }
+    var serve = null;
+    if (this.props.serve) {
+      serve = <img src="ball.png" className="set_serve" />;
+    }
+    var lineupLink = this.props.lineupLink;
     return (
     <div className={"set_team team_"+this.props.side}>
       <div className="set_score">
-        <div className="set_team_name">{this.props.teamName}</div>
+        <div className="set_team_name">
+          {this.props.teamName}
+          {serve}
+        </div>
         <TouchButton className="set_score_button" onClick={this.props.onScorePlus}>
           <div className="set_score_button_score">{score}</div>
           <div className="set_score_button_label">+1</div>
@@ -880,7 +893,7 @@ var TeamSet = React.createClass({
       <Substitutions subs={this.props.set.subs}
         onAdd={this.props.onSubstitution} />
 
-      <CurrentLineup initial={initialLineup} score={score} />
+      <CurrentLineup serve={serve} lineupLink={lineupLink} score={score} />
     </div>
     );
   }
@@ -1063,13 +1076,14 @@ var CurrentLineup = React.createClass({
     var cells = [];
     var score = this.props.score;
     var players = indices.length;
+    var lineup = this.props.lineupLink.value;
     for (var i = 0; i < players; ++i) {
-      var j = (indices[i] + score) % players;
-      cells.push(<div key={j} className="set_lineup_cell">{this.props.initial[j]}</div>);
+      var j = lineup[indices[i]];
+      cells.push(<div key={j} className="set_lineup_cell">{j}</div>);
     }
     return (
       <div className="set_lineup">
-        <div className="set_lineup_title">Opstilling</div>
+        <div className="set_lineup_title">Opstilling {''+!!this.props.serve}</div>
         {cells}
       </div>
       );
@@ -1282,7 +1296,7 @@ var Results = React.createClass({
     var sets = [];
     for (var i = 0; i < SETS; ++i) {
       var set = this.props.sets[i] || {};
-      sets.push([(set[0].score | 0) || 0, (set[1].score | 0) || 0]);
+      sets.push([(set.teams[0].score | 0) || 0, (set.teams[1].score | 0) || 0]);
     }
     var rows = [];
     for (var i = 0; i < sets.length; ++i) {

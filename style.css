@@ -75,6 +75,22 @@ body {
     height: 60px;
 }
 
+.set_team_name .set_serve {
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    top: 50%;
+    margin-top: -10px;
+}
+
+.team_left .set_serve {
+    right: 0;
+}
+
+.team_right .set_serve {
+    left: 0;
+}
+
 .set_score {
     position: absolute;
     width: 166px;
