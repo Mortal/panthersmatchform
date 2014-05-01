@@ -694,13 +694,17 @@ var MatchForm = React.createClass({
         this.setState({showSubstitutionTeamIndex: -1});
       }.bind(this);
 
+      var teamIndex = this.state.showSubstitutionTeamIndex;
+      var teamName = this.state.game.teams[teamIndex].name;
+
       modal = (
         <div className="modal">
-          {SubstitutionsModal.renderHeader()}
+          {SubstitutionsModal.renderHeader(teamName)}
 
           <div className="modal_contents">
             <SubstitutionsModal
             currentLineup={currentLineup}
+            teamName={teamName}
             players={players}
             onSubmit={onSubmit}
             onCancel={onCancel}
@@ -1253,8 +1257,8 @@ var SubstitutionsModal = React.createClass({
     );
   },
   statics: {
-    renderHeader: function () {
-      return <div className="modal_header">Udskiftning</div>;
+    renderHeader: function (teamName) {
+      return <div className="modal_header">Udskiftning på {teamName}</div>;
     }
   }
 });
