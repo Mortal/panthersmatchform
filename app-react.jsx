@@ -678,7 +678,6 @@ var MatchForm = React.createClass({
 
           {nextSetButton}
           <div style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
-            <TouchButton onClick={this.resetGame}>Start spillet forfra</TouchButton>
             <TouchButton onClick={this.changeSet.bind(this, -1)}>Forrige sæt</TouchButton>
             <TouchButton onClick={function () {location.reload();}}>Reload</TouchButton>
             <TouchButton onClick={this.props.onExit}>Forlad spillet</TouchButton>
@@ -736,19 +735,6 @@ var MatchForm = React.createClass({
     }
     var action = new StartSet(st, set);
     this.pushAction(action);
-  },
-
-  // Event callback
-  resetGame: function () {
-    function emptyTeamSet() { return {score: 0, subs: [], timeouts: [null, null], lineup: [1,2,3,4,5,6]}; }
-    function emptySet() { return [emptyTeamSet(), emptyTeamSet()]; }
-    this.setState({
-      currentSetIndex: 0,
-      game: {teams: [{name: 'ASV 7'}, {name: 'Viborg'}]},
-      sets: [
-        emptySet(), emptySet(), emptySet()
-      ]
-    });
   },
 
   showSubstitutionModal: function (teamIndex) {
