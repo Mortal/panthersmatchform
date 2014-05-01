@@ -1182,7 +1182,9 @@ var SubstitutionsModal = React.createClass({
       function (n) { return -1 == currentLineup.indexOf(n); });
 
     var updateState = function (k, v) {
-      this.setState({k: v});
+      var st = {};
+      st[k] = v;
+      this.setState(st);
     }.bind(this);
 
     var dataLink = function (k) {
