@@ -208,7 +208,7 @@ ChangeTimeout.prototype.description = function () {
     return [this.teamName,' kalder timeout ved stilling ',this.timeoutData[0],
       ' - ',this.timeoutData[1]];
   } else {
-    return ['Skift timeout for ', this.teamName,
+    return ['Du ændrede timeout for ', this.teamName,
       ' fra ',this.oldTimeout[0],' - ',this.oldTimeout[1],
       ' til ',this.timeoutData[0],' - ',this.timeoutData[1]];
   }
