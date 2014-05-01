@@ -625,3 +625,14 @@ td.results_set {
 .setup_button_reset, .subs_cancel_button {
     background-color: #D72536;
 }
+
+.reload_button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 58px;
+    height: 58px;
+    background-color: black;
+    color: white;
+    border: 0 none black;
+}

@@ -678,7 +678,6 @@ var MatchForm = React.createClass({
 
           {nextSetButton}
           <div style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
-            <TouchButton onClick={function () {location.reload();}}>Reload</TouchButton>
             <TouchButton onClick={this.props.onExit}>Forlad spillet</TouchButton>
             <span id="messages" />
           </div>
@@ -713,6 +712,12 @@ var MatchForm = React.createClass({
       />
 
       {modal}
+
+      <TouchButton
+        className="reload_button"
+        onClick={function () {location.reload();}}>
+        <img src="reload.svg" style={{width: 20, height: 20}} />
+      </TouchButton>
 
     </div>
     );
