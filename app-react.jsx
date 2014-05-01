@@ -523,7 +523,8 @@ var SetupFormForm = React.createClass({
         teams: teams
       },
       sets: [generateSet(teams), generateSet(teams), generateSet(teams)],
-      actions: []
+      actions: [],
+      redoStack: []
     };
     currentGameStorage.set(storedState);
     this.props.onSubmit();
@@ -568,6 +569,17 @@ var MatchForm = React.createClass({
     return currentGameStorage.get();
   },
 
+  redoAction: function () {
+    var st = this.state;
+    if (!st.redoStack || !st.redoStack.length) return;
+    var action = st.redoStack[st.redoStack.length-1];
+    st.redoStack.pop();
+    st.actions.push(action);
+    action.execute(st);
+    this.replaceState(st);
+    this.saveState();
+  },
+
   pushAction: function (action) {
     var st = this.state;
     if (st.actions.length > 0
@@ -578,6 +590,7 @@ var MatchForm = React.createClass({
     } else if (!action.noop || !action.noop()) {
       st.actions.push(action);
       action.execute(st);
+      st.redoStack = [];
       this.replaceState(st);
       this.saveState();
     }
@@ -589,6 +602,7 @@ var MatchForm = React.createClass({
       var action = st.actions[st.actions.length-1];
       st.actions.pop();
       action.undo(st);
+      st.redoStack.push(action);
       this.replaceState(st);
     }
   },
@@ -600,7 +614,8 @@ var MatchForm = React.createClass({
       currentSetIndex: st.currentSetIndex,
       game: st.game,
       sets: st.sets,
-      actions: []
+      actions: [],
+      redoStack: []
     };
     currentGameStorage.set(storedState);
   },
@@ -691,7 +706,7 @@ var MatchForm = React.createClass({
           {ActionList.renderHeader()}
 
           <div className="modal_contents">
-            <ActionList actions={this.state.actions} onUndo={this.popAction} />
+            <ActionList actions={this.state.actions} redoStack={this.state.redoStack} onUndo={this.popAction} onRedo={this.redoAction} />
 
             <Results game={this.state.game} sets={this.state.sets} currentSet={this.state.currentSetIndex}/>
 
@@ -1315,6 +1330,10 @@ var ActionList = React.createClass({
     actions = actions.map(function (act, i) {
       return <li key={i}>{act.description()}</li>;
     });
+    var redoClassName = 'actions_redo';
+    if (!this.props.redoStack || !this.props.redoStack.length) {
+      redoClassName += ' actions_redo_disabled';
+    }
     return (
         <div className="actions">
           <ul ref="contents" className="actions_list">
@@ -1323,6 +1342,8 @@ var ActionList = React.createClass({
 
           <TouchButton className="actions_undo" onClick={this.props.onUndo}>
           Slet sidste handling</TouchButton>
+          <TouchButton className={redoClassName} onClick={this.props.onRedo}>
+          Fortryd slet</TouchButton>
         </div>
     );
   },

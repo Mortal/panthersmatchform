@@ -404,9 +404,23 @@ button {
     background-color: #d72536;
     color: white;
     height: 48px;
-    width: 100%;
+    width: 70%;
     font-size: 20px;
     font-weight: bold;
+}
+
+.actions_redo {
+    border: 0 none black;
+    background-color: #4c9433;
+    color: white;
+    height: 48px;
+    width: 30%;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.actions_redo_disabled {
+    background-color: #666;
 }
 
 .results {
