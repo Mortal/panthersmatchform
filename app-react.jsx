@@ -6,7 +6,7 @@ var SETSCORE = 25;
 var TIMEOUTS = 2;
 var SUBSTITUTIONS = 6;
 var MAXPLAYERNUMBER = 30;
-
+var FIELDPLAYERS = 6;
 
 
 function generateNewTeamInSet() {
@@ -249,9 +249,210 @@ SubstitutionCommand.prototype.description = function () {
   return <div>{this.teamName} udskifter {this.playerOut} med {this.playerIn}</div>;
 };
 
+function PersistentStorage(key) {
+  this._key = key;
+  this.persistent = !!window.localStorage;
+  this._value = null;
+}
+
+PersistentStorage.prototype.get = function () {
+  var v;
+  if (this.persistent)
+    v = JSON.parse(window.localStorage.getItem(this._key));
+  else
+    v = this._value;
+  console.log("Load",v);
+  return v;
+};
+
+PersistentStorage.prototype.set = function (v) {
+  console.log("Store",v);
+  if (this.persistent)
+    window.localStorage.setItem(this._key, JSON.stringify(v));
+  else
+    this._value = v;
+};
+
+var currentGameStorage = new PersistentStorage('current_matchform_state');
+
 ///////////////////////////////////////////////////////////////////////////////
 // React Component implementations.
 ///////////////////////////////////////////////////////////////////////////////
+
+var GameStateManager = React.createClass({
+  getInitialState: function () {
+    if (currentGameStorage.get()) {
+      return {state: 'matchform'};
+    } else {
+      return {state: 'setup'};
+    }
+  },
+  render: function () {
+    var st = this.state.state;
+    var setState = function (v) {
+      this.setState({state: v});
+    };
+    if (st == 'matchform') {
+      return <MatchForm onExit={setState.bind(this, 'setup')} />;
+    } else {
+      // setup
+      return <SetupForm onEnter={setState.bind(this, 'matchform')} />;
+    }
+  }
+});
+
+var SetupForm = React.createClass({
+  render: function () {
+    return (
+      <div className="screen setup">
+        <div className="setup_header">Volleyball-opsætning</div>
+
+        <SetupFormForm onSubmit={this.onEnter} />
+      </div>
+    );
+  },
+});
+
+var SetupFormForm = React.createClass({
+  getEmptyState: function () {
+    function initialTeamState() {
+      var players = [];
+      for (var i = 1; i <= MAXPLAYERNUMBER; ++i) {
+        players.push({number: i, name: ''});
+      }
+      return {
+        name: '',
+        players: players
+      };
+    }
+    return {
+      team1: initialTeamState(),
+      team2: initialTeamState()
+    };
+  },
+
+  getInitialState: function () {
+    var v = currentGameStorage.get();
+    if (!v) return this.getEmptyState();
+    function existingTeamState(team) {
+      var existing = {};
+      for (var i = 0; i < team.players.length; ++i) {
+        existing[team.players[i].number] = team.players[i].name;
+      }
+      var players = [];
+      for (var i = 1; i <= MAXPLAYERNUMBER; ++i) {
+        players.push({number: i, name: existing[i] || ''});
+      }
+      return {
+        name: team.name,
+        players: players
+      };
+    }
+    return {
+      team1: existingTeamState(v.game.teams[0]),
+      team2: existingTeamState(v.game.teams[1])
+    };
+  },
+
+  render: function () {
+    var stateAccessor = function () { return this.state; }.bind(this);
+    var evaluate = function (f) { return f(); };
+    var extend = function (f, k) { return function () { return f()[k]; }; };
+
+    var updateState = function (accessor, k, v) {
+      evaluate(accessor)[k] = v;
+      this.setState(this.state);
+    };
+
+    var dataLink = function (accessor, k) {
+      return {
+        value: accessor()[k],
+        requestChange: updateState.bind(this, accessor, k),
+        subLink: dataLink.bind(this, extend(accessor, k))
+      };
+    }.bind(this);
+
+    return (
+      <div>
+        <div>
+          <TouchButton onClick={this.submit}>Start spillet</TouchButton>
+          <TouchButton onClick={this.clear}>Ryd alt</TouchButton>
+        </div>
+        <SetupPlayerList valueLink={dataLink(stateAccessor, 'team1')} />
+        <SetupPlayerList valueLink={dataLink(stateAccessor, 'team2')} />
+      </div>
+    );
+  },
+
+  submit: function () {
+    function nonemptyName(s) {
+      return s.name != '';
+    }
+
+    function generateSetTeam(team) {
+      return {
+        score: 0,
+        subs: [],
+        timeouts: [null, null],
+        lineup: team.players.slice(0, FIELDPLAYERS).map(
+          function (player) { return player.number; })
+      };
+    }
+
+    function generateSet(teams) {
+      return teams.map(generateSetTeam);
+    }
+
+    var st = this.state;
+
+    var teams = [
+      {name: st.team1.name, players: st.team1.players.filter(nonemptyName)},
+      {name: st.team2.name, players: st.team2.players.filter(nonemptyName)}
+    ];
+
+    var storedState = {
+      showSubstitutionTeamIndex: -1,
+      currentSetIndex: 0,
+      game: {
+        teams: teams
+      },
+      sets: [generateSet(teams), generateSet(teams), generateSet(teams)],
+      actions: []
+    };
+    currentGameStorage.set(storedState);
+    this.props.onSubmit();
+  }
+});
+
+var SetupPlayerList = React.createClass({
+  render: function () {
+    var dataLink = function (k) {
+      return this.props.valueLink.subLink(k);
+    }.bind(this);
+    var playerLink = dataLink('players');
+    var players = playerLink.value.map(
+      function (player, i) {
+        return (
+          <li key={i}>
+            <input type="text"
+              valueLink={playerLink.subLink(i).subLink('number')} />
+            <input type="text"
+              valueLink={playerLink.subLink(i).subLink('name')} />
+          </li>
+        );
+      }
+    );
+
+    return (
+      <div>
+        <div><input type="text" valueLink={dataLink('name')} /></div>
+        <ul>
+          {players}
+        </ul>
+      </div>
+    );
+  }
+});
 
 //-----------------------------------------------------------------------------
 // The root component, implementing the game state (aka. game model) and
@@ -259,6 +460,11 @@ SubstitutionCommand.prototype.description = function () {
 
 var MatchForm = React.createClass({
   getInitialState: function () {
+    var st = currentGameStorage.get();
+    if (st) return st;
+
+    // Supply some default values
+
     function make_player_list(names_string) {
       var names = names_string.split(' ');
       var numbers = [1, 2, 7, 8, 12, 23, 4, 10, 15, 19];
@@ -299,6 +505,7 @@ var MatchForm = React.createClass({
       st.actions.push(action);
       action.execute(st);
       this.setState(st);
+      this.saveState();
     }
   },
 
@@ -311,7 +518,19 @@ var MatchForm = React.createClass({
       this.setState(st);
     }
   },
-  
+
+  saveState: function () {
+    var st = this.state;
+    var storedState = {
+      showSubstitutionTeamIndex: -1,
+      currentSetIndex: st.currentSetIndex,
+      game: st.game,
+      sets: st.sets,
+      actions: []
+    };
+    currentGameStorage.set(storedState);
+  },
+
   getNextSet: function() {
     var st = this.state;
     if(st.currentSetIndex >= st.sets.length) {
@@ -396,6 +615,7 @@ var MatchForm = React.createClass({
             <TouchButton onClick={this.resetGame}>Start spillet forfra</TouchButton>
             <TouchButton onClick={this.changeSet.bind(this, -1)}>Forrige sæt</TouchButton>
             <TouchButton onClick={function () {location.reload();}}>Reload</TouchButton>
+            <TouchButton onClick={this.props.onExit}>Forlad spillet</TouchButton>
             <span id="messages" />
           </div>
 
@@ -1096,7 +1316,7 @@ var TouchButton = React.createClass({
 ///////////////////////////////////////////////////////////////////////////////
 
 React.initializeTouchEvents(true);
-React.renderComponent(<MatchForm />, document.body);
+React.renderComponent(<GameStateManager />, document.body);
 
 window.addEventListener('touchstart', function (e) {
   if (e.touches.length > 1) {
