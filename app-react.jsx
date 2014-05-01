@@ -616,9 +616,21 @@ var MatchForm = React.createClass({
 
     var nextSetButton;
     if (this.getNextSet() != this.state.sets.length) {
-      nextSetButton = <TouchButton onClick={this.changeSet.bind(this, +1)} className="next_button">Start sæt {this.getNextSet() + 1}</TouchButton>;
+      nextSetButton = (
+        <TouchButton
+          onClick={this.changeSet.bind(this, +1)}
+          className="next_button">
+          Start sæt {this.getNextSet() + 1}
+        </TouchButton>
+      );
     } else {
-      nextSetButton = <TouchButton onClick={this.changeSet.bind(this, +1)} className="next_button" disabled="true">Der er ikke flere sæt</TouchButton>;
+      nextSetButton = (
+        <TouchButton
+          className="next_button"
+          disabled="true">
+          Der er ikke flere sæt
+        </TouchButton>
+      );
     }
 
     var modal;
