@@ -328,6 +328,7 @@ button {
     top: 7.5%;
     left: 0;
     width: 100%;
+    height: 92.5%;
 }
 
 .actions {
@@ -488,11 +489,11 @@ td.results_set {
 }
 
 .subs_column_in {
-    right: 55%;
+    left: 10%;
 }
 
 .subs_column_out {
-    left: 55%;
+    right: 10%;
 }
 
 .subs_list {
@@ -547,6 +548,18 @@ td.results_set {
     display: inline-block;
 }
 
+.subs_confirm_message {
+    margin-bottom: 16px;
+}
+
+.subs_confirm {
+    position: absolute;
+    bottom: 32px;
+    height: 140px;
+    left: 10%;
+    right: 10%;
+}
+
 .next_button {
 	position: absolute;
 	top: 620px;
@@ -597,7 +610,7 @@ td.results_set {
     text-align: center;
 }
 
-.setup_button_submit, .setup_button_reset {
+.setup_button_submit, .setup_button_reset, .subs_confirm_button, .subs_cancel_button {
     padding: 10px;
     border: 0 none black;
     color: white;
@@ -605,10 +618,10 @@ td.results_set {
     margin-right: 16px;
 }
 
-.setup_button_submit {
+.setup_button_submit, .subs_confirm_button {
     background-color: #4c9433;
 }
 
-.setup_button_reset {
+.setup_button_reset, .subs_cancel_button {
     background-color: #D72536;
 }
