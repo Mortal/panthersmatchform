@@ -303,7 +303,7 @@ var GameStateManager = React.createClass({
   render: function () {
     var st = this.state.state;
     var setState = function (v) {
-      this.setState({state: v});
+      this.replaceState({state: v});
     };
     if (st == 'matchform') {
       return <MatchForm onExit={setState.bind(this, 'setup')} />;
@@ -375,7 +375,7 @@ var SetupFormForm = React.createClass({
 
     var updateState = function (accessor, k, v) {
       evaluate(accessor)[k] = v;
-      this.setState(this.state);
+      this.replaceState(this.state);
     };
 
     var dataLink = function (accessor, k) {
@@ -444,7 +444,7 @@ var SetupFormForm = React.createClass({
   },
 
   clear: function () {
-    this.setState(this.getEmptyState());
+    this.replaceState(this.getEmptyState());
   },
 
   autoFill: function () {
@@ -474,7 +474,7 @@ var SetupFormForm = React.createClass({
       })
     };
 
-    this.setState(st);
+    this.replaceState(st);
   },
 
   submit: function () {
@@ -569,7 +569,7 @@ var MatchForm = React.createClass({
     } else if (!action.noop || !action.noop()) {
       st.actions.push(action);
       action.execute(st);
-      this.setState(st);
+      this.replaceState(st);
       this.saveState();
     }
   },
@@ -580,7 +580,7 @@ var MatchForm = React.createClass({
       var action = st.actions[st.actions.length-1];
       st.actions.pop();
       action.undo(st);
-      this.setState(st);
+      this.replaceState(st);
     }
   },
 
@@ -645,9 +645,7 @@ var MatchForm = React.createClass({
       var onSubmit = function (playerInNumber, playerOutNumber) {
         var teamIndex = this.state.showSubstitutionTeamIndex;
 
-        var st = this.state;
-        st.showSubstitutionTeamIndex = -1;
-        this.setState(st);
+        this.setState({showSubstitutionTeamIndex: -1});
 
         this.pushAction(new SubstitutionCommand(
           this.state, this.state.currentSetIndex, teamIndex,
@@ -656,9 +654,7 @@ var MatchForm = React.createClass({
       }.bind(this);
 
       var onCancel = function () {
-        var st = this.state;
-        st.showSubstitutionTeamIndex = -1;
-        this.setState(st);
+        this.setState({showSubstitutionTeamIndex: -1});
       }.bind(this);
 
       modal = (
@@ -705,7 +701,7 @@ var MatchForm = React.createClass({
         var currentSet = this.state.sets[this.state.currentSetIndex];
         console.log(i);
         currentSet.teams[i].lineup = v;
-        this.setState(this.state);
+        this.replaceSet(this.state);
       }.bind(this)
     };
 
@@ -754,9 +750,7 @@ var MatchForm = React.createClass({
   },
 
   showSubstitutionModal: function (teamIndex) {
-    var st = this.state;
-    st.showSubstitutionTeamIndex = teamIndex;
-    this.setState(st);
+    this.setState({showSubstitutionTeamIndex: teamIndex});
   },
 
   // Computed property
@@ -926,19 +920,19 @@ var TimeoutButton = React.createClass({
 
   // Event callback
   startChange: function () {
-    var st = this.state;
-    st.changing = true;
-    st.score = [this.props.score[0], this.props.score[1]];
-    this.setState(st);
+    this.replaceState({
+      changing: true,
+      score: [this.props.score[0], this.props.score[1]]
+    });
   },
 
   // Event callback
   stopChange: function () {
     var st = this.state;
     this.props.onChange(st.score[0], st.score[1]);
-    st.changing = false;
-    st.score = null;
-    this.setState(st);
+    this.replaceState({
+      changing: false
+    });
   },
 
   // Event callback
@@ -947,7 +941,7 @@ var TimeoutButton = React.createClass({
     if (!st.changing) return;
     if (st.score[i] == value) return;
     st.score[i] = value;
-    this.setState(st);
+    this.replaceState(st);
   }
 });
 
@@ -1143,8 +1137,7 @@ var SubstitutionsModal = React.createClass({
       function (n) { return -1 == currentLineup.indexOf(n); });
 
     var updateState = function (k, v) {
-      this.state[k] = v;
-      this.setState(this.state);
+      this.setState({k: v});
     }.bind(this);
 
     var dataLink = function (k) {
@@ -1403,10 +1396,14 @@ var TouchButton = React.createClass({
   },
   onTouchStart: function (e) {
     if (e.touches.length != 1) {
-      this.setState({touching: false});
+      this.replaceState({touching: false});
       return;
     }
-    this.setState({touching: true, identifier: e.touches[0].identifier, target: this.getDOMNode()});
+    this.replaceState({
+      touching: true,
+      identifier: e.touches[0].identifier,
+      target: this.getDOMNode()
+    });
     e.preventDefault();
   },
   onTouchMove: function (e) {
@@ -1419,7 +1416,7 @@ var TouchButton = React.createClass({
       var tgt = document.elementFromPoint(touch.pageX, touch.pageY);
       if (!this.state.target.contains(tgt)) {
         //console.log("moved outside target "+this.state.target.className+" "+tgt.className);
-        this.setState({touching: false});
+        this.replaceState({touching: false});
       }
     }
   },
@@ -1436,7 +1433,7 @@ var TouchButton = React.createClass({
       // into mouse events and click event.
       e.preventDefault();
     }
-    this.setState({touching: false});
+    this.replaceState({touching: false});
   }
 });
 
