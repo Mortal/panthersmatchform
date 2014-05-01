@@ -1073,10 +1073,35 @@ var CurrentLineup = React.createClass({
     }
     return (
       <div className="set_lineup">
-        <div className="set_lineup_title">Opstilling {''+!!this.props.serve}</div>
+        <div className="set_lineup_title">
+          Opstilling
+        </div>
+        <div className="set_lineup_rotate">
+          <TouchButton onClick={this.rotate_cw}>
+            <img src="rotate-cw.svg" style={{width: 20, height: 20}} />
+          </TouchButton>
+          <TouchButton onClick={this.rotate_ccw}>
+            <img src="rotate-ccw.svg" style={{width: 20, height: 20}} />
+          </TouchButton>
+        </div>
         {cells}
       </div>
       );
+  },
+  rotate: function (amount) {
+    var lineup = this.props.lineupLink.value;
+    amount = (amount + lineup.length) % lineup.length;
+    var a = lineup.slice(0, amount);
+    var b = lineup.slice(amount);
+    lineup = b;
+    lineup.push.apply(lineup, a);
+    this.props.lineupLink.requestChange(lineup);
+  },
+  rotate_cw: function () {
+    this.rotate(1);
+  },
+  rotate_ccw: function () {
+    this.rotate(-1);
   }
 });
 

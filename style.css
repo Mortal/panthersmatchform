@@ -253,6 +253,22 @@ button {
     padding: 6px 4px;
     font-size: 20px;
     text-align: left;
+    height: 22px;
+}
+
+.set_lineup_rotate {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 34px;
+    line-height: 34px;
+}
+
+.set_lineup_rotate button {
+    height: 34px;
+    width: 34px;
+    background-color: transparent;
+    border: 0 none black;
 }
 
 .set_lineup {
